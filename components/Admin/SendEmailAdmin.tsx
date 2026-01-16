@@ -62,6 +62,10 @@ export default function SendEmailAdmin({
 
     const { valid: validRecipients, invalid: invalidRecipients } = useMemo(() => parseEmails(email), [email]);
 
+    let buttonLabel = 'Send Email';
+    if (status === 'submitting') buttonLabel = 'Sending…';
+    else if (sentSuccessful) buttonLabel = 'Sent Successfully';
+
     return (
         <Box className="flex flex-col min-w-full m-auto p-6 rounded-2xl border-2 border-[#ccca]">
             <form
@@ -242,7 +246,7 @@ export default function SendEmailAdmin({
                                         color={sentSuccessful ? "success" : "primary"}
                                         disabled={status === 'submitting' || sentSuccessful}
                                     >
-                                        {status === 'submitting' ? 'Sending…' : sentSuccessful ? 'Sent Successfully' : 'Send Email'}
+                                        {buttonLabel}
                                     </Button>
                                 </TableCell>
                             </TableRow>
