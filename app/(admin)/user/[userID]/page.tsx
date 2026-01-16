@@ -8,9 +8,10 @@ import React from 'react';
 import {fetchUserLogs} from '@util/logActions';
 import {validateAdminSession} from '@util/session';
 import UserTransactionView from '@components/User/UserTransactionView';
-import {fetchTransactions} from '@util/transActions';
+import {fetchTransactions, addManualTransaction} from '@util/transActions';
 import {sendMail} from '@util/emailActions';
 import SendEmailAdmin from '@components/Admin/SendEmailAdmin';
+import ManualTransactionAdmin from '@components/Admin/ManualTransactionAdmin';
 
 export const metadata = {
     title: 'Manage an Artist',
@@ -79,6 +80,11 @@ export default async function AdminUserManagementPage({
                 <SendEmailAdmin
                     userProfile={userProfile.toJSON()}
                     sendMail={sendMail}
+                />
+
+                <ManualTransactionAdmin
+                    userID={userProfile.id}
+                    addManualTransaction={addManualTransaction}
                 />
 
                 <UserLogView

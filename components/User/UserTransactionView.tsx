@@ -98,6 +98,7 @@ export default function UserTransactionView({
                 Date
               </TableCell>
               <TableCell align="center">Type</TableCell>
+              <TableCell align="center">Provider ID</TableCell>
               <TableCell align="center">Full Name</TableCell>
               <TableCell align="center">Email</TableCell>
               <TableCell align="center">Phone</TableCell>
@@ -106,17 +107,20 @@ export default function UserTransactionView({
           </TableHead>
           <TableBody>
             {data.map(({
-              createdAt, type, full_name, email, phone, amount
+              createdAt, type, provider_id, full_name, email, phone, amount
             }) => (
               <TableRow
-                key={createdAt}
+                key={createdAt?.toString() || Math.random().toString()}
                 sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
               >
                 <TableCell align="center" scope="row">
-                  {createdAt ? createdAt.toLocaleString() : 'N/A'}
+                  {createdAt ? new Date(createdAt).toLocaleString() : 'N/A'}
                 </TableCell>
                 <TableCell align="center">
                   {type}
+                </TableCell>
+                <TableCell align="center">
+                  {provider_id}
                 </TableCell>
                 <TableCell align="center">
                   {full_name}

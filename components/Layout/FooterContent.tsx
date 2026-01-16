@@ -17,6 +17,8 @@ export function FooterContent({ showDates = false }: FooterContentProps) {
           {' '}
           <Link href="mailto:ari.asulin@gmail.com" target="_blank">Ari Asulin</Link>
           {' '}
+          (<Link href="https://clevertree.net/" target="_blank">CLEVERTREE</Link>)
+          {' '}
           and can be edited via
           {' '}
           <Link href="https://github.com/clevertree/gordonston-arts-fair" target="_blank">Github.com</Link>

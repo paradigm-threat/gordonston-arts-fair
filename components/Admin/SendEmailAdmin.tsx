@@ -14,15 +14,15 @@ import {
     TableRow,
     TextField
 } from '@mui/material';
-import React, {useMemo, useRef, useState} from 'react';
-import type {AlertColor} from '@mui/material/Alert';
+import React, { useMemo, useRef, useState } from 'react';
+import type { AlertColor } from '@mui/material/Alert';
 import Mail from 'nodemailer/lib/mailer';
-import {useRouter} from 'next/navigation';
-import {templateList} from '@template/email';
-import {UserModel} from '@util/models';
-import {MailResult} from '@types';
+import { useRouter } from 'next/navigation';
+import { templateList } from '@template/email';
+import { UserModel } from '@util/models';
+import { MailResult } from '@types';
 import SelectField from '@components/FormFields/SelectField';
-import {renderReactNodeToString} from "@util/emailClient";
+import { renderReactNodeToString } from "@util/emailClient";
 
 interface SendEmailAdminProps {
     sendMail(options: Mail.Options): Promise<MailResult>,
@@ -41,14 +41,14 @@ function parseEmails(input: string): { valid: string[]; invalid: string[] } {
     const valid: string[] = [];
     const invalid: string[] = [];
     unique.forEach((e) => (emailRegex.test(e) ? valid.push(e) : invalid.push(e)));
-    return {valid, invalid};
+    return { valid, invalid };
 }
 
 export default function SendEmailAdmin({
-                                           sendMail,
-                                           userProfile,
-                                           initialEmails
-                                       }: SendEmailAdminProps) {
+    sendMail,
+    userProfile,
+    initialEmails
+}: SendEmailAdminProps) {
     const userEmail = userProfile?.email || initialEmails || '';
     const userStatus = userProfile?.status;
     const [status, setStatus] = useState<'ready' | 'submitting'>('ready');
@@ -60,7 +60,7 @@ export default function SendEmailAdmin({
     const formRef = useRef<HTMLFormElement>(null);
     const router = useRouter();
 
-    const {valid: validRecipients, invalid: invalidRecipients} = useMemo(() => parseEmails(email), [email]);
+    const { valid: validRecipients, invalid: invalidRecipients } = useMemo(() => parseEmails(email), [email]);
 
     return (
         <Box className="flex flex-col min-w-full m-auto p-6 rounded-2xl border-2 border-[#ccca]">
@@ -93,16 +93,16 @@ export default function SendEmailAdmin({
                         const failed: { email: string; error: string }[] = [];
                         for (const to of validRecipients) {
                             try {
-                                const {status: s, message: m} = await sendMail({
+                                const { status: s, message: m } = await sendMail({
                                     to,
                                     // html: body,
                                     text: body,
                                     subject,
                                 });
-                                if (s !== 'success') failed.push({email: to, error: m});
+                                if (s !== 'success') failed.push({ email: to, error: m });
                             } catch (err: unknown) {
                                 const errorMsg = err instanceof Error ? err.message : 'Unknown error';
-                                failed.push({email: to, error: errorMsg});
+                                failed.push({ email: to, error: errorMsg });
                             }
                         }
 
@@ -119,7 +119,7 @@ export default function SendEmailAdmin({
                         setMessage(['error', (e as Error).message]);
                     } finally {
                         setStatus('ready');
-                        formRef.current?.scrollIntoView({behavior: 'smooth', block: 'end'});
+                        formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
                         router.refresh(); // Refresh the current page
                     }
                 }}
@@ -157,10 +157,10 @@ export default function SendEmailAdmin({
                                             if (templateList[templateID]) {
                                                 const template = templateList[templateID];
                                                 if (template) {
-                                                    const {default: MDXComponent} = template;
+                                                    const { default: MDXComponent } = template;
                                                     // const emailOptions = getEmailInfo(userProfile.email, template);
                                                     setBody(renderReactNodeToString(
-                                                        <MDXComponent/>).text);
+                                                        <MDXComponent />).text);
                                                     setSubject(`${template.subject}`);
                                                 } else {
                                                     setMessage(['error', 'Invalid template ID. Please try again.']);

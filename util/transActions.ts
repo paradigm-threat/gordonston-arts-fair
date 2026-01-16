@@ -4,7 +4,9 @@
 
 import {ensureDatabase} from '@util/database';
 import {UserTransactionModel} from '@util/models';
-import {TransactionType} from '@types';
+import {TransactionType, UserStatus} from '@types';
+import {validateAdminSession} from '@util/session';
+import {fetchProfileByID, fetchProfileFromSession, updateUserStatus} from '@util/profileActions';
 
 export interface UserTransactionSearchParams {
     type?: TransactionType,
@@ -55,4 +57,45 @@ export async function addTransaction(
         provider_id,
         content
     });
+}
+
+export async function addManualTransaction(
+    userID: number,
+    type: TransactionType,
+    amount: number,
+    provider: string,
+    provider_id: string,
+    newStatus?: UserStatus
+) {
+    await validateAdminSession();
+    const adminProfile = await fetchProfileFromSession();
+
+    const userProfile = await fetchProfileByID(userID);
+
+    await addTransaction(
+        userID,
+        type,
+        amount,
+        `${userProfile.first_name} ${userProfile.last_name}`,
+        userProfile.email,
+        userProfile.phone || null,
+        provider_id,
+        {
+            provider,
+            manual: true,
+            adminEmail: adminProfile.email,
+            date: new Date().toISOString()
+        }
+    );
+
+    if (newStatus) {
+        await updateUserStatus(
+            userID,
+            newStatus,
+            `Status updated to ${newStatus} via manual transaction entry by admin ${adminProfile.email}`,
+            true // send email
+        );
+    }
+
+    return { status: 'success', message: 'Transaction added successfully' };
 }
