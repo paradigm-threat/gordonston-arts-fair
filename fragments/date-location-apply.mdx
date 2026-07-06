@@ -2,10 +2,10 @@ import {MdLocationPin} from "react-icons/md";
 import {CiCalendarDate} from "react-icons/ci";
 import {IoEnterOutline} from "react-icons/io5";
 import clsx from "clsx";
-import {formatDate} from "@util/date";
+import {formatDate, getApplicationStatusText} from "@util/date";
+
 export const eventDateString = formatDate(new Date(`${process.env.NEXT_PUBLIC_EVENT_DATE}`));
-export const registrationOpenDateString = formatDate(new Date(`${process.env.NEXT_PUBLIC_REGISTRATION_OPEN_DATE}`));
-// export const registrationEndDate = formatDate(new Date(`${process.env.NEXT_PUBLIC_REGISTRATION_END_DATE}`), false, false);
+export const applicationStatusText = getApplicationStatusText();
 
 <div className={clsx(`grid md:grid-cols-3 gap-4 p-3 pl-[24px] w-[100vw] md:w-auto`, props.className)}>
     <div className='pl-[12px]'>
@@ -28,7 +28,7 @@ export const registrationOpenDateString = formatDate(new Date(`${process.env.NEX
     <div className='pl-[12px]'>
         <h2 className='uppercase'><IoEnterOutline/> Artist Application</h2>
         <div>
-            The artist application period is closed.
+            {applicationStatusText}
         </div>
     </div>
 </div>

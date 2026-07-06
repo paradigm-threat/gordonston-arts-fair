@@ -1,9 +1,13 @@
-import {formatDate, getTimeSpan} from "../../util/date";
+import {formatDate, getRegistrationPhase, getTimeSpan} from "../../util/date";
+
+export const eventDate = new Date(process.env.NEXT_PUBLIC_EVENT_DATE);
+export const eventYear = eventDate.getFullYear();
+export const eventDateFormatted = formatDate(eventDate);
 
 export const metadata = {
     title: 'Welcome to the Gordonston Art Fair Website',
-    description: "On Saturday, February 28, 2026, we'll be hosting our annual fine arts and crafts fair, in historic Gordonston's Juliette Gordon Low Park, Savannah GA",
-    keywords: "Gordonston, Art Fair, Historic, Juliette Gordon Low Park, Savannah, Georgia, 2026",
+    description: `On ${eventDateFormatted}, we'll be hosting our annual fine arts and crafts fair, in historic Gordonston's Juliette Gordon Low Park, Savannah GA`,
+    keywords: `Gordonston, Art Fair, Historic, Juliette Gordon Low Park, Savannah, Georgia, ${eventYear}`,
     openGraph: {
         url: "https://gordonstonartfair.com",
         images: `${process.env.NEXT_PUBLIC_BASE_URL}/img/Art_Show-768x430.jpg`,
@@ -11,7 +15,6 @@ export const metadata = {
 }
 
 export {formatDate};
-export const eventDate = new Date(process.env.NEXT_PUBLIC_EVENT_DATE);
 export const eventDayBeforeDate = new Date(eventDate.getTime() - 1000 * 60 * 60 * 24);
 export const registrationOpenDate = new Date(process.env.NEXT_PUBLIC_REGISTRATION_OPEN_DATE);
 export const registrationTimeUntil = getTimeSpan(new Date(), registrationOpenDate);
@@ -20,21 +23,22 @@ export const registrationFee = process.env.NEXT_PUBLIC_REGISTRATION_FEE;
 export const registrationFeeDate = new Date(process.env.NEXT_PUBLIC_REGISTRATION_FEE_DATE);
 export const notifyStatusDate = new Date(process.env.NEXT_PUBLIC_NOTIFY_DATE);
 export const boothFee = process.env.NEXT_PUBLIC_BOOTH_FEE;
+export const registrationPhase = getRegistrationPhase();
 
 
 <h2 className='m-auto text-[color:var(--gold-color)] font-bold italic'>Gordonston Art Fair</h2>
 
 You are warmly welcomed to our annual fine arts and crafts fair, hosted in historic Gordonston's Juliette Gordon Low
-Park. In addition to juried local and regional artists and artisans, we will hold a gently used book sales.
+Park. In addition to juried local and regional artists and artisans, we will hold a gently used book sale.
 There will be food trucks, live music, and a supervised children's crafts area.
 
-# Artist Application for the 2026 Gordonston Art Fair
+# Artist Application for the {eventYear} Gordonston Art Fair
 
 Welcome to the application page. Please carefully read the following:
 
 * This event takes place on {formatDate(eventDate)}.
 * Online applications will be accepted beginning {formatDate(registrationOpenDate)}.
-* Applications must be submitted by {formatDate(registrationEndDate)} with a non-refundable fee of ${registrationFee}.
+* Applications must be submitted by {formatDate(registrationEndDate)} with a non-refundable application fee of ${registrationFee}.
 * Artists/artisans will be notified of their status (accepted, declined, or waiting list) by {formatDate(notifyStatusDate)}.
 * If you are accepted, the ${boothFee} booth fee must be paid by {formatDate(registrationFeeDate)}.
 * As our vending space is limited, we may fill up before the deadline. In this event, we will maintain a
@@ -235,11 +239,28 @@ Ave. at #10 Edgewood Road, Savannah, Georgia 31404
 
 ## I would like an exhibitor booth, what do I do?
 
-The application period for artists ended at midnight on {formatDate(registrationEndDate)}.
+{registrationPhase === 'not-yet-open' && (
+<>
+Online applications for exhibitor booths will open on {formatDate(registrationOpenDate)}.
+The application fee is ${registrationFee}.00. If accepted, the booth fee is ${boothFee}.00 and must be paid by {formatDate(registrationFeeDate)}.
+You may create an account now; you will be able to submit your application when the window opens.
+</>
+)}
 
-First, you need to apply for an exhibitor booth. Only online applications will be accepted. The application fee is
-${registrationFee}.00. If accepted, the booth fee is ${boothFee}.00 and must be paid upon acceptance.
-The application deadline is {formatDate(registrationEndDate)}.
+{registrationPhase === 'open' && (
+<>
+Applications are currently open until {formatDate(registrationEndDate)}.
+Apply for an exhibitor booth online. The application fee is ${registrationFee}.00.
+If accepted, the booth fee is ${boothFee}.00 and must be paid by {formatDate(registrationFeeDate)}.
+</>
+)}
+
+{registrationPhase === 'closed' && (
+<>
+The application period for artists ended at midnight on {formatDate(registrationEndDate)}.
+Please check back next year or contact [admin@gordonstonartfair.com](mailto:admin@gordonstonartfair.com) about waitlist availability.
+</>
+)}
 
 
 <div className='pb-16'/>

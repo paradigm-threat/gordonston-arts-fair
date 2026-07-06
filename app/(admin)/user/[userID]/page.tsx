@@ -1,15 +1,15 @@
-import {fetchProfileByID, fetchProfileFromSession, fetchUserFiles, updateUserStatus} from '@util/profileActions';
+import { fetchProfileByID, fetchProfileFromSession, fetchUserFiles, updateUserStatus } from '@util/profileActions';
 import Link from 'next/link';
 import UserStatusEditorAdmin from '@components/Admin/UserStatusEditorAdmin';
 import ProfileView from '@components/User/ProfileView';
-import {Box, Stack} from '@mui/material';
+import { Box, Stack } from '@mui/material';
 import UserLogView from '@components/User/UserLogView';
 import React from 'react';
-import {fetchUserLogs} from '@util/logActions';
-import {validateAdminSession} from '@util/session';
+import { fetchUserLogs } from '@util/logActions';
+import { validateAdminSession } from '@util/session';
 import UserTransactionView from '@components/User/UserTransactionView';
-import {fetchTransactions, addManualTransaction} from '@util/transActions';
-import {sendMail} from '@util/emailActions';
+import { fetchTransactions, addManualTransaction } from '@util/transActions';
+import { sendMail } from '@util/emailActions';
 import SendEmailAdmin from '@components/Admin/SendEmailAdmin';
 import ManualTransactionAdmin from '@components/Admin/ManualTransactionAdmin';
 
@@ -20,14 +20,14 @@ export const metadata = {
 const USER_LABEL = process.env.NEXT_PUBLIC_USER_LABEL || 'User';
 
 export default async function AdminUserManagementPage({
-                                                          params,
-                                                      }: {
+    params,
+}: {
     params: Promise<{ userID: number }>
 }) {
     await validateAdminSession();
     const adminProfile = await fetchProfileFromSession();
 
-    const {userID} = await params;
+    const { userID } = await params;
     const userProfile = await fetchProfileByID(userID);
     const userUploads = await fetchUserFiles(userProfile.id);
 

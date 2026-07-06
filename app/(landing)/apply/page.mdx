@@ -1,4 +1,4 @@
-import {formatDate, getTimeSpan} from "../../../util/date";
+import {formatDate, getRegistrationPhase, getTimeSpan} from "../../../util/date";
 import {SignUpButton} from '@clerk/nextjs'; // or @clerk/clerk-react for plain React apps
 
 export const metadata = {
@@ -12,24 +12,44 @@ export const registrationOpenDate = new Date(process.env.NEXT_PUBLIC_REGISTRATIO
 export const registrationTimeUntil = getTimeSpan(new Date(), registrationOpenDate);
 export const registrationEndDate = new Date(process.env.NEXT_PUBLIC_REGISTRATION_END_DATE);
 export const registrationFee = process.env.NEXT_PUBLIC_REGISTRATION_FEE;
-export const registrationFeeDate = process.env.NEXT_PUBLIC_REGISTRATION_FEE_DATE;
+export const registrationFeeDate = new Date(process.env.NEXT_PUBLIC_REGISTRATION_FEE_DATE);
 export const boothFee = process.env.NEXT_PUBLIC_BOOTH_FEE;
+export const registrationPhase = getRegistrationPhase();
 
 
 <h2 id='registration'
     className='m-auto text-[color:var(--gold-color)] italic'>Artist Registration</h2>
 
 This event takes place on **{formatDate(eventDate)}**.
-Registration for this event is now open until
-**{formatDate(registrationEndDate)}**.
+
+{registrationPhase === 'not-yet-open' && (
+<>
+Online applications will open on **{formatDate(registrationOpenDate)}** and close on **{formatDate(registrationEndDate)}**.
+You may create an account now; you will be able to submit your application when the window opens.
+</>
+)}
+
+{registrationPhase === 'open' && (
+<>
+Applications are open until **{formatDate(registrationEndDate)}**.
+</>
+)}
+
+{registrationPhase === 'closed' && (
+<>
+The application period has closed. Please contact [admin@gordonstonartfair.com](mailto:admin@gordonstonartfair.com) with questions.
+</>
+)}
+
+Returning exhibitors from a prior year may log in with the same email address to re-apply using their saved profile and artwork images.
 
 * * *
 
 Welcome to a Gordonston tradition, the hosting of juried local and regional artists and artisans in the beautiful setting of the Juliette Gordon Low Park in Savannah’s historic Gordonston neighborhood.
 
 Only online applications will be accepted.
-The registration fee is ${registrationFee}.00.
-If accepted, the booth fee is ${boothFee}.00.
+The application fee is ${registrationFee}.00.
+If accepted, the booth fee is ${boothFee}.00 and must be paid by {formatDate(registrationFeeDate)}.
 
 Application deadline is {formatDate(registrationEndDate)};
 however, artists will be informed in a timely manner
@@ -59,14 +79,14 @@ To ensure a balanced and varied selection of exhibitors, we will limit the numbe
 
 *   All work must be original fine art or handmade craft created by the exhibiting artist, limited reproductions of original work are acceptable.
 *   Artists must exhibit and be present with their work for the duration of the event. No dealers or agents are allowed.
-*   Artists may only display work approved by the Jury. The committee reserves the right to ask exhibitors to remove objectional items. Our festival is a family-friendly event.
+*   Artists may only display work approved by the Jury. The committee reserves the right to ask exhibitors to remove objectionable items. Our festival is a family-friendly event.
 *   Artists are responsible for providing their own tent, tables, display racks, etc.
 *   Tents and displays must be secured (stakes allowed) and able to withstand strong winds and all-weather conditions – we are a rain or shine event.
 *   Artist booths must remain open for the duration of the event. No early teardowns
 *   Artist vehicles must be off the park grounds
 by 7:00 pm on {formatDate(eventDayBeforeDate, true, false)}
 and by 9:30 am on {formatDate(eventDate, true, false)}
-and are not permitted to return until after 4:00 pm on Saturday.
+and are not permitted to return until after 4:00 pm on {formatDate(eventDate, true, false)}.
 It is required that to avoid congestion, artists completely tear down
 their booths before bringing in vehicles for load-in.
 
@@ -93,8 +113,7 @@ and exhibited is created by me and that the work I bring will be similar to the
 images I submitted in quality and style.  I further attest that I have read,
 accept and agree to abide by all the rules and regulations outlined on the
 GordonstonArtFair.com "Exhibitor Information" and "Application Process" pages.
-I understand that if I am accepted for the festival, my booth fee is due within
-30 days of acceptance. I also understand that I, as the artist,
+I understand that if I am accepted for the festival, my booth fee is due by {formatDate(registrationFeeDate)}. I also understand that I, as the artist,
 must be present for the duration of the event.
 
 By registering as an artist,

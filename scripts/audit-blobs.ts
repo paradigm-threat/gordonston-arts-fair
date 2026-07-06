@@ -1,7 +1,13 @@
 import dotenv from 'dotenv';
-import {list} from '@vercel/blob';
 import {ensureDatabase} from '@util/database';
 import {UserFileUploadModel} from '@util/models';
+import {
+    decodePathname,
+    normalizePathFromUrl,
+    parseDimensionsFromPathname,
+    parseUserIdFromPathname,
+} from '@util/blobPaths';
+import {listBlobsUnder} from '@util/uploadCleanup';
 
 // Load env vars from .env then .env.local (local overrides)
 dotenv.config({path: ['.env', '.env.local', '../.env', '../.env.local'], override: true});
@@ -60,101 +66,22 @@ function parseArgs(argv: string[]): CLIOptions {
     return opts;
 }
 
-function decodePathname(pathname: string): string {
-    const noLead = pathname.replace(/^\//, '');
-    const parts = noLead.split('/').map(seg => {
-        try {
-            return decodeURIComponent(seg);
-        } catch {
-            return seg;
-        }
-    });
-    return parts.join('/');
-}
-
-function normalizePathFromUrl(url: string): string | null {
-    try {
-        const u = new URL(url);
-        const p = decodePathname(u.pathname);
-        return p || null;
-    } catch {
-        // if it's already a path-like string
-        return decodePathname(url) || null;
-    }
-}
-
-function parseUserIdFromPathname(pathname: string): number | null {
-    // Expecting: uploads/<userId>/...
-    const parts = pathname.split('/');
-    if (parts.length < 2) return null;
-    if (parts[0] !== 'uploads') return null;
-    const id = parseInt(parts[1], 10);
-    return Number.isFinite(id) ? id : null;
-}
-
-function parseDimensionsFromPathname(pathname: string): { width?: number; height?: number; filename?: string } {
-    // Expecting: uploads/<userId>/<width>-<height>/<filename>
-    const parts = pathname.split('/');
-    // parts[0]=uploads, [1]=userId, [2]=width-height, [3..]=filename path (usually 1 segment)
-    if (parts.length >= 4) {
-        const wh = parts[2];
-        const [wStr, hStr] = (wh || '').split('-');
-        const width = parseInt(wStr, 10);
-        const height = parseInt(hStr, 10);
-        const filename = parts.slice(3).join('/');
-        return {
-            width: Number.isFinite(width) ? width : undefined,
-            height: Number.isFinite(height) ? height : undefined,
-            filename,
-        };
-    }
-    return {};
-}
-
-async function listBlobsUnder(prefix?: string): Promise<Array<{
-    pathname: string;
-    url?: string;
-    downloadUrl?: string;
-}>> {
-    type ListResult = {
-        blobs: Array<{ pathname?: string; url?: string; downloadUrl?: string }>;
-        cursor?: string;
-        hasMore: boolean;
-    };
-    const results: Array<{ pathname: string; url?: string; downloadUrl?: string }> = [];
-    let cursor: string | undefined = undefined;
-    let hasMore = true;
-    while (hasMore) {
-        const page: ListResult = await list({ cursor, prefix } as any);
-        for (const b of page.blobs) {
-            if (!b.pathname) continue;
-            results.push({ pathname: b.pathname, url: (b as any).url, downloadUrl: (b as any).downloadUrl });
-        }
-        cursor = page.cursor;
-        hasMore = page.hasMore;
-    }
-    return results;
-}
-
 async function main() {
     const {userId, commit} = parseArgs(process.argv);
 
-    // Initialize database
     await ensureDatabase();
 
     const prefix = userId != null ? `uploads/${userId}/` : undefined;
     const blobs = await listBlobsUnder(prefix);
 
-    // Filter to uploads/ only (in case bucket has other paths)
     const uploadBlobs = blobs.filter(b => b.pathname.startsWith('uploads/'));
 
-    // Group blobs by user id
     const blobsByUser = new Map<number, Array<{ pathname: string; url?: string; downloadUrl?: string }>>();
     for (const b of uploadBlobs) {
         const decodedPath = decodePathname(b.pathname);
         const uid = parseUserIdFromPathname(decodedPath);
         if (uid == null) continue;
-        if (userId != null && uid !== userId) continue; // safety if prefix-less listing
+        if (userId != null && uid !== userId) continue;
         const arr = blobsByUser.get(uid) || [];
         arr.push({...b, pathname: decodedPath});
         blobsByUser.set(uid, arr);
@@ -173,10 +100,8 @@ async function main() {
 
     for (const [uid, userBlobs] of blobsByUser.entries()) {
         console.log(`\n=== User ${uid} ===`);
-        // Fetch DB rows for this user
         const rows = await UserFileUploadModel.findAll({where: {user_id: uid}});
 
-        // Build set of normalized pathnames from DB URLs
         const dbPathSet = new Set<string>();
         const dbByPath = new Map<string, typeof rows[number]>();
         for (const r of rows) {
@@ -187,7 +112,6 @@ async function main() {
             }
         }
 
-        // Build set of blob paths and a lookup
         const blobPathSet = new Set<string>();
         const blobByPath = new Map<string, { pathname: string; url?: string; downloadUrl?: string }>();
         for (const b of userBlobs) {
@@ -196,13 +120,11 @@ async function main() {
             blobByPath.set(p, b);
         }
 
-        // Blobs missing in DB
         const missingInDb: string[] = [];
         for (const p of blobPathSet) {
             if (!dbPathSet.has(p)) missingInDb.push(p);
         }
 
-        // DB rows whose blob missing in storage
         const missingInBlob: string[] = [];
         for (const p of dbPathSet) {
             if (!blobPathSet.has(p)) missingInBlob.push(p);
@@ -227,7 +149,7 @@ async function main() {
                         const title = decodeURIComponent(dims.filename || p.split('/').pop() || 'Untitled');
                         const width = dims.width ?? 0;
                         const height = dims.height ?? 0;
-                        const url = b.url || b.downloadUrl || `/${p}`; // fallbacks
+                        const url = b.url || b.downloadUrl || `/${p}`;
 
                         const created = await UserFileUploadModel.create({
                             user_id: uid,
@@ -237,7 +159,7 @@ async function main() {
                             height,
                             url,
                             feature: false,
-                        } as any);
+                        } as Parameters<typeof UserFileUploadModel.create>[0]);
                         insertedIds.push(created.id);
                         console.log(`  inserted id=${created.id} path=${p}`);
                     } catch (e) {
@@ -268,7 +190,6 @@ async function main() {
     }
 }
 
-// Run if executed directly
 (async () => {
     try {
         await main();

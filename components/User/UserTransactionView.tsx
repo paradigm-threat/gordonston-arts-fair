@@ -1,6 +1,6 @@
 'use client';
 
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Alert,
   Box,
@@ -14,15 +14,15 @@ import {
   TableRow,
   Typography
 } from '@mui/material';
-import type {AlertColor} from '@mui/material/Alert';
-import {transactionTypes} from '@types';
-import {snakeCaseToTitleCase} from '@util/format';
-import {UserTransactionModel} from '@util/models';
-import {UserTransactionSearchParams} from '@util/transActions';
+import type { AlertColor } from '@mui/material/Alert';
+import { transactionTypes } from '@types';
+import { snakeCaseToTitleCase } from '@util/format';
+import { UserTransactionModel } from '@util/models';
+import { UserTransactionSearchParams } from '@util/transActions';
 
 interface AdminUserTransactionProps {
   fetchUserTransactions(
-      args: UserTransactionSearchParams
+    args: UserTransactionSearchParams
   ): Promise<UserTransactionModel[]>,
   title: string
 }
@@ -53,9 +53,9 @@ export default function UserTransactionView({
       </Typography>
 
       {message && message[1] && (
-      <Alert severity={message[0]}>
-        {message[1]}
-      </Alert>
+        <Alert severity={message[0]}>
+          {message[1]}
+        </Alert>
       )}
 
       <div className="flex flex-row">

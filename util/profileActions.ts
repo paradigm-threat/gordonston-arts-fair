@@ -2,7 +2,7 @@
 
 'use server';
 
-import {del, put} from '@vercel/blob';
+import {put} from '@vercel/blob';
 import {ensureDatabase} from '@util/database';
 import {addUserUserLogModel} from '@util/logActions';
 import {imageDimensionsFromStream} from 'image-dimensions';
@@ -14,6 +14,7 @@ import {validateSession} from '@util/session';
 import {HttpError, UnauthorizedError} from '@util/exception/httpError';
 import {currentUser} from '@clerk/nextjs/server';
 import {getEmailInfoServer, sendMail} from '@util/emailActions';
+import {deleteUploadRecord} from '@util/uploadCleanup';
 import {
     ArtistApprovedTemplate,
     ArtistDeclinedTemplate,
@@ -195,22 +196,7 @@ export async function deleteFile(userID: number, fileID: number) {
     });
     if (!fileUpload) throw new Error(`File ID not found: ${fileID}`);
 
-    try {
-        if (fileUpload.url) {
-            await del(fileUpload.url);
-            console.log('Deleted file: ', fileUpload.url);
-        } else {
-            console.log('Skipping blob delete; DB record has empty URL for id=', fileUpload.id);
-        }
-    } catch (error: unknown) {
-        console.error('Error deleting file: ', error);
-    }
-    const deleteAction = await UserFileUploadModel.destroy({
-        where: {
-            id: fileID,
-            user_id: userProfile.id,
-        }
-    });
+    await deleteUploadRecord(fileUpload);
 
     const {
         status: profileStatus,
@@ -218,7 +204,6 @@ export async function deleteFile(userID: number, fileID: number) {
     return {
         message: 'File deleted successfully',
         result: profileStatus,
-        deleteAction
     };
 }
 

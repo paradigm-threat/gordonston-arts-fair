@@ -1,17 +1,12 @@
 {
   "env": {
     "browser": true,
-    "es2020": true,
-    "cypress/globals": true
-  },
-  "globals": {
-    "cy": true
+    "es2020": true
   },
   "extends": [
     "next",
     "next/core-web-vitals",
     "plugin:jsx-a11y/recommended",
-    "plugin:cypress/recommended",
     "plugin:@typescript-eslint/recommended"
   ],
   "ignorePatterns": [
@@ -19,7 +14,8 @@
     "**/vendor/*.js",
     "**/dist/*.js",
     "**/build/*.js",
-    "cypress"
+    "playwright-report/",
+    "test-results/"
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
@@ -33,14 +29,15 @@
     ]
   },
   "plugins": [
-    "jsx-a11y",
-    "cypress"
+    "jsx-a11y"
   ],
   "overrides": [
     {
       "files": [
         "*.test.js",
-        "*.test.jsx"
+        "*.test.jsx",
+        "tests/**/*.ts",
+        "tests/**/*.tsx"
       ]
     }
   ],
@@ -121,12 +118,6 @@
     "object-curly-newline": "warn",
     "import/extensions": "warn",
     "import/prefer-default-export": "off",
-    "cypress/no-assigning-return-values": "error",
-    "cypress/no-unnecessary-waiting": "error",
-    "cypress/assertion-before-screenshot": "warn",
-    "cypress/no-force": "warn",
-    "cypress/no-async-tests": "error",
-    "cypress/no-pause": "error",
     "linebreak-style": 0,
     "jsx-a11y/img-redundant-alt": "warn",
     "jsx-a11y/anchor-has-content": "warn",

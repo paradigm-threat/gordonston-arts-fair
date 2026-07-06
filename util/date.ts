@@ -56,3 +56,44 @@ function getOrdinalSuffix(day: number) {
       return 'th';
   }
 }
+
+export type RegistrationPhase = 'not-yet-open' | 'open' | 'closed';
+
+export function getRegistrationOpenDate() {
+  return new Date(`${process.env.NEXT_PUBLIC_REGISTRATION_OPEN_DATE}`);
+}
+
+export function getRegistrationEndDate() {
+  return new Date(`${process.env.NEXT_PUBLIC_REGISTRATION_END_DATE}`);
+}
+
+export function getRegistrationFeeDueDate() {
+  return new Date(`${process.env.NEXT_PUBLIC_REGISTRATION_FEE_DATE}`);
+}
+
+function isRegistrationClosedAt(now: Date) {
+  const endMatch = (process.env.NEXT_PUBLIC_REGISTRATION_END_DATE || '').trim().match(/^(\d{4}-\d{2}-\d{2})/);
+  return endMatch
+    ? now >= new Date(new Date(`${endMatch[1]}T00:00:00`).getTime() + 24 * 60 * 60 * 1000)
+    : false;
+}
+
+export function getRegistrationPhase(now = new Date()): RegistrationPhase {
+  if (now < getRegistrationOpenDate()) return 'not-yet-open';
+  if (isRegistrationClosedAt(now)) return 'closed';
+  return 'open';
+}
+
+export function getApplicationStatusText(now = new Date()): string {
+  const registrationOpenDateString = formatDate(getRegistrationOpenDate());
+  const registrationEndDateString = formatDate(getRegistrationEndDate(), false, false);
+  const phase = getRegistrationPhase(now);
+
+  if (phase === 'not-yet-open') {
+    return `Applications open ${registrationOpenDateString}`;
+  }
+  if (phase === 'closed') {
+    return 'The artist application period is closed.';
+  }
+  return `Applications open until ${registrationEndDateString}`;
+}

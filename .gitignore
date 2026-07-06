@@ -9,6 +9,10 @@ package-lock.json
 
 # testing
 /coverage
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
 
 # next.js
 /.next/
@@ -27,23 +31,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# local env files
-.env*.loc ''
-next-env.d.ts
+# local env files (secrets only — never commit)
+.env.local
+.env.*.local
 
-# Cypress
-cypress/screenshots
-
-# Exports
-export.csv
-
-# clerk configuration (can include secrets)
-/.clerk/
-
-# Intellij
-.idea
-
-# Backup
-backup
-.env*.local
+# Vercel
 .vercel

@@ -2,11 +2,11 @@
 
 'use server';
 
-import {ensureDatabase} from '@util/database';
-import {UserTransactionModel} from '@util/models';
-import {TransactionType, UserStatus} from '@types';
-import {validateAdminSession} from '@util/session';
-import {fetchProfileByID, fetchProfileFromSession, updateUserStatus} from '@util/profileActions';
+import { ensureDatabase } from '@util/database';
+import { UserTransactionModel } from '@util/models';
+import { TransactionType, UserStatus } from '@types';
+import { validateAdminSession } from '@util/session';
+import { fetchProfileByID, fetchProfileFromSession, updateUserStatus } from '@util/profileActions';
 
 export interface UserTransactionSearchParams {
     type?: TransactionType,
@@ -20,9 +20,9 @@ export interface UserTransactionSearchParams {
 export async function fetchTransactions(userID: number, options: UserTransactionSearchParams = {}) {
     await ensureDatabase();
 
-    const {type, amount} = options;
+    const { type, amount } = options;
 
-    const whereCondition: { [key: string]: string | number } = {user_id: userID};
+    const whereCondition: { [key: string]: string | number } = { user_id: userID };
     if (type) whereCondition.type = type;
     if (amount !== undefined && amount !== null) whereCondition.amount = amount;
 

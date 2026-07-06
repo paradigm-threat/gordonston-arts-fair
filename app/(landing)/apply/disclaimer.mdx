@@ -1,3 +1,7 @@
+import {formatDate} from '@util/date';
+
+export const registrationFeeDate = new Date(process.env.NEXT_PUBLIC_REGISTRATION_FEE_DATE);
+
 * * *
 
 
@@ -20,8 +24,7 @@ and exhibited is created by me and that the work I bring will be similar to the
 images I submitted in quality and style.  I further attest that I have read,
 accept and agree to abide by all the rules and regulations outlined on the
 GordonstonArtFair.com "Exhibitor Information" and "Application Process" pages.
-I understand that if I am accepted for the festival, my booth fee is due within
-30 days of acceptance. I also understand that I, as the artist,
+I understand that if I am accepted for the festival, my booth fee is due by {formatDate(registrationFeeDate)}. I also understand that I, as the artist,
 must be present for the duration of the event.
 
 By submitting this form, I accept and agree to the terms and conditions above.
