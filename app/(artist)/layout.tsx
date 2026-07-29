@@ -8,8 +8,12 @@ import {FooterContent} from '@components/Layout/FooterContent';
 import {SuspenseContent} from "@components/Suspense/SuspenseContent";
 
 export const metadata: Metadata = {
-    title: 'Gordonston Art Fair',
-    description: 'Created by Ari Asulin',
+    title: 'Artist Portal',
+    description: 'Gordonston Art Fair artist account area.',
+    robots: {
+        index: false,
+        follow: false,
+    },
 };
 
 export default function ArtistLayout({

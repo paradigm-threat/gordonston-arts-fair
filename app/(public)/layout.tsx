@@ -9,7 +9,11 @@ import {SuspenseContent} from "@components/Suspense/SuspenseContent";
 
 export const metadata: Metadata = {
     title: 'Gordonston Art Fair',
-    description: 'Created by Ari Asulin',
+    description: 'Payment and account helpers for Gordonston Art Fair.',
+    robots: {
+        index: false,
+        follow: false,
+    },
 };
 
 export default function ArtistLayout({

@@ -7,8 +7,21 @@ import ThemeRegistry from '@components/Theme/ThemeRegistry';
 import { ClerkProvider } from '@clerk/nextjs';
 
 export const metadata: Metadata = {
-  title: 'Gordonston Art Fair',
-  description: 'Created by Ari Asulin',
+  metadataBase: new URL('https://gordonstonartfair.com'),
+  title: {
+    default: 'Gordonston Art Fair',
+    template: '%s | Gordonston Art Fair',
+  },
+  description:
+    'Annual fine arts and crafts fair in historic Gordonston’s Juliette Gordon Low Park, Savannah, GA.',
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    type: 'website',
+    siteName: 'Gordonston Art Fair',
+    url: 'https://gordonstonartfair.com',
+  },
 };
 
 export default function RootLayout({

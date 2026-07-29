@@ -7,8 +7,12 @@ import {FooterContent} from '@components/Layout/FooterContent';
 import {SuspenseContent} from "@components/Suspense/SuspenseContent";
 
 export const metadata: Metadata = {
-    title: 'Gordonston Art Fair',
-    description: 'Created by Ari Asulin',
+    title: 'Admin',
+    description: 'Gordonston Art Fair administration.',
+    robots: {
+        index: false,
+        follow: false,
+    },
 };
 
 export default function AdminLayout({
