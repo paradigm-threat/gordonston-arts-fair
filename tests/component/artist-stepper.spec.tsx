@@ -13,9 +13,11 @@ test.describe('ArtistStepper', () => {
                     action: 'upload-files',
                 }}
                 showAlert
+                now={new Date('2026-09-01T12:00:00')}
             />
         );
 
         await expect(page.getByText('Upload Images')).toBeVisible();
+        await expect(page.getByText(/pay the artist registration fee/i)).toBeVisible();
     });
 });

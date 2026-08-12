@@ -1,6 +1,6 @@
-import type { MetadataRoute } from 'next'
+import type { MetadataRoute } from 'next';
 
-const SITE = 'https://gordonstonartfair.com'
+const SITE = 'https://gordonstonartfair.com';
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -22,5 +22,5 @@ export default function robots(): MetadataRoute.Robots {
     },
     sitemap: `${SITE}/sitemap.xml`,
     host: SITE,
-  }
+  };
 }

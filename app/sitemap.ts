@@ -1,6 +1,6 @@
-import type { MetadataRoute } from 'next'
+import type { MetadataRoute } from 'next';
 
-const SITE = 'https://gordonstonartfair.com'
+const SITE = 'https://gordonstonartfair.com';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
@@ -24,5 +24,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'yearly',
       priority: 0.3,
     },
-  ]
+  ];
 }

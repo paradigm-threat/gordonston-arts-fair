@@ -1,13 +1,18 @@
 import React from 'react';
+import {
+  formatDate,
+  getRegistrationOpenDate,
+  getRegistrationPhase,
+} from '@util/date';
 
 /**
- * Simple information box stating that applications are closed.
- * The message year is derived from NEXT_PUBLIC_EVENT_DATE.
+ * Information box when registration payment is unavailable
+ * (not yet open or already closed).
  */
-export default function ApplicationsClosedInfo() {
+export default function ApplicationsClosedInfo({ now }: { now?: Date } = {}) {
+  const phase = getRegistrationPhase(now);
   const eventDateStr = process.env.NEXT_PUBLIC_EVENT_DATE || '';
 
-  // Parse year from env string safely (expects formats like YYYY-MM-DD ...)
   let eventYear: string = '';
   if (eventDateStr) {
     const yearMatch = eventDateStr.trim().match(/^\s*(\d{4})/);
@@ -15,6 +20,14 @@ export default function ApplicationsClosedInfo() {
   }
 
   const yearText = eventYear || 'the upcoming';
+  if (phase === 'open') {
+    return null;
+  }
+
+  const message =
+    phase === 'not-yet-open'
+      ? `Applications are not open for submission yet. Online submission opens ${formatDate(getRegistrationOpenDate())}. You can still save your profile and uploads until then.`
+      : `Applications are closed for the ${yearText} Gordonston Art Fair. Please consider applying next year.`;
 
   return (
     <div
@@ -27,9 +40,7 @@ export default function ApplicationsClosedInfo() {
       role="status"
       aria-live="polite"
     >
-      <p style={{ margin: 0 }}>
-        Applications are closed for the {yearText} Gordonston Art Fair. Please consider applying next year.
-      </p>
+      <p style={{ margin: 0 }}>{message}</p>
     </div>
   );
 }

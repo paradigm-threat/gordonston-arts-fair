@@ -1,5 +1,18 @@
 import {defineConfig, devices} from '@playwright/experimental-ct-react';
 import path from 'node:path';
+import dotenv from 'dotenv';
+
+dotenv.config({path: path.resolve(__dirname, '.env')});
+
+const publicEnv = {
+    NEXT_PUBLIC_EVENT_DATE: process.env.NEXT_PUBLIC_EVENT_DATE ?? '',
+    NEXT_PUBLIC_REGISTRATION_OPEN_DATE: process.env.NEXT_PUBLIC_REGISTRATION_OPEN_DATE ?? '',
+    NEXT_PUBLIC_REGISTRATION_END_DATE: process.env.NEXT_PUBLIC_REGISTRATION_END_DATE ?? '',
+    NEXT_PUBLIC_REGISTRATION_FEE_DATE: process.env.NEXT_PUBLIC_REGISTRATION_FEE_DATE ?? '',
+    NEXT_PUBLIC_NOTIFY_DATE: process.env.NEXT_PUBLIC_NOTIFY_DATE ?? '',
+    NEXT_PUBLIC_REGISTRATION_FEE: process.env.NEXT_PUBLIC_REGISTRATION_FEE ?? '',
+    NEXT_PUBLIC_BOOTH_FEE: process.env.NEXT_PUBLIC_BOOTH_FEE ?? '',
+};
 
 export default defineConfig({
     testDir: './tests/component',
@@ -13,6 +26,12 @@ export default defineConfig({
         ctPort: 3100,
         ctTemplateDir: './playwright',
         ctViteConfig: {
+            define: Object.fromEntries(
+                Object.entries(publicEnv).map(([key, value]) => [
+                    `process.env.${key}`,
+                    JSON.stringify(value),
+                ])
+            ),
             resolve: {
                 alias: {
                     '@components': path.resolve(__dirname, './components'),

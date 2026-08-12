@@ -9,6 +9,7 @@ import { fetchTransactions } from '@util/transActions';
 import UserTransactionView from '@components/User/UserTransactionView';
 import ApplicationPreview from '@components/User/ApplicationPreview';
 import ApplicationsClosedInfo from '@components/Info/ApplicationsClosedInfo';
+import { getRegistrationPhase } from '@util/date';
 
 export const metadata = {
   title: 'Artist Checkout',
@@ -39,20 +40,8 @@ export default async function CheckoutPage() {
     feeText = `You have not yet completed your profile. ${eligibleToRegisterString}`;
   }
   const USER_LABEL = process.env.NEXT_PUBLIC_USER_LABEL || 'User';
-
-  // Determine if registrations are closed: cutoff is midnight between the end date and the next day
-  const endDateEnv = process.env.NEXT_PUBLIC_REGISTRATION_END_DATE || '';
-  let registrationsClosed = false;
-  if (endDateEnv) {
-    const match = endDateEnv.trim().match(/^(\d{4}-\d{2}-\d{2})/);
-    if (match) {
-      const datePart = match[1];
-      // Interpret as local time midnight and add one day to get the cutoff at start of the next day
-      const endDayStart = new Date(`${datePart}T00:00:00`);
-      const cutoff = new Date(endDayStart.getTime() + 24 * 60 * 60 * 1000);
-      registrationsClosed = new Date() > cutoff;
-    }
-  }
+  const registrationPhase = getRegistrationPhase();
+  const registrationAvailable = registrationPhase === 'open';
 
   return (
     <Stack spacing={2}>
@@ -62,7 +51,7 @@ export default async function CheckoutPage() {
 
       <ApplicationPreview userProfile={userProfile} userUploads={userUploads} />
 
-      {registrationsClosed ? (
+      {!registrationAvailable ? (
         <ApplicationsClosedInfo />
       ) : (
         <Checkout

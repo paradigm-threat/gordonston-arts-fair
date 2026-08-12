@@ -40,6 +40,13 @@ const nextConfig = {
         ];
     },
 
+    async redirects() {
+        return [
+            {source: '/index', destination: '/', permanent: true},
+            {source: '/index/', destination: '/', permanent: true},
+        ];
+    },
+
     allowedDevOrigins: ['127.0.0.1'],
 }
 

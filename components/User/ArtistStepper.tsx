@@ -4,10 +4,13 @@ import {
 } from '@mui/material';
 import Link from 'next/link';
 import React from 'react';
+import { formatDate, getRegistrationOpenDate, getRegistrationPhase } from '@util/date';
 
 interface ArtistStepperProps {
   profileStatus: IProfileStatus,
-  showAlert?: boolean
+  showAlert?: boolean,
+  /** Optional clock override for tests / previews */
+  now?: Date,
 }
 
 export function ArtistStepper({
@@ -16,11 +19,13 @@ export function ArtistStepper({
     complete,
     formFilled,
     message,
-  }, showAlert
+  }, showAlert,
+  now,
 }: ArtistStepperProps) {
   let activeStep = 0;
   let returnMessage: ['info' | 'success', string] = ['info', message];
   let redirectURL: React.JSX.Element = <Link href="/profile/edit">Click here to return to profile editor</Link>;
+  const registrationPhase = getRegistrationPhase(now);
 
   if (formFilled) {
     activeStep = 1;
@@ -30,8 +35,16 @@ export function ArtistStepper({
 
   if (complete) {
     activeStep = 2;
-    returnMessage = ['info', 'Please pay the artist registration fee to submit your profile for approval.'];
-    redirectURL = <Link href="/payment/registration">Click here to pay the Registration Fee</Link>;
+    if (registrationPhase === 'not-yet-open') {
+      returnMessage = ['info', `Your profile is saved. Application submission opens ${formatDate(getRegistrationOpenDate())}.`];
+      redirectURL = <Link href="/profile">Click here to return to your profile</Link>;
+    } else if (registrationPhase === 'closed') {
+      returnMessage = ['info', 'The application period has closed. Your profile is saved, but new submissions are not being accepted.'];
+      redirectURL = <Link href="/profile">Click here to return to your profile</Link>;
+    } else {
+      returnMessage = ['info', 'Please pay the artist registration fee to submit your profile for approval.'];
+      redirectURL = <Link href="/payment/registration">Click here to pay the Registration Fee</Link>;
+    }
   }
 
   if (status === 'submitted') {
