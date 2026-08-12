@@ -84,6 +84,22 @@ export function getRegistrationPhase(now = new Date()): RegistrationPhase {
   return 'open';
 }
 
+/** True only while artists may create registration-fee checkout sessions. */
+export function isRegistrationCheckoutAllowed(now = new Date()): boolean {
+  return getRegistrationPhase(now) === 'open';
+}
+
+export function getRegistrationCheckoutBlockedMessage(now = new Date()): string {
+  const phase = getRegistrationPhase(now);
+  if (phase === 'not-yet-open') {
+    return `Application submission is not open yet. You can save your profile now; submissions open ${formatDate(getRegistrationOpenDate())}.`;
+  }
+  if (phase === 'closed') {
+    return 'Artist registration is closed for this year\'s event.';
+  }
+  return '';
+}
+
 export function getApplicationStatusText(now = new Date()): string {
   const registrationOpenDateString = formatDate(getRegistrationOpenDate());
   const registrationEndDateString = formatDate(getRegistrationEndDate(), false, false);

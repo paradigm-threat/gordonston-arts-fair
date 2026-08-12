@@ -39,6 +39,20 @@ test.describe('Checkout API', () => {
         const body = await response.json();
         expect(body.message).toMatch(/not open yet|submission/i);
     });
+
+    test('public payment page hides registration checkout before open date', async ({page}) => {
+        await page.goto('/payment?email=playwright-registration-gate@example.com', {
+            waitUntil: 'domcontentloaded',
+        });
+
+        const body = await page.locator('body').innerText();
+        const submissionsNotOpen = /not open for submission yet/i.test(body)
+            || /Applications are closed/i.test(body);
+
+        test.skip(!submissionsNotOpen, 'Registration window is already open in this environment');
+
+        await expect(page.getByRole('button', {name: /Pay Registration Fee/i})).toHaveCount(0);
+    });
 });
 
 test.describe('Public payment page', () => {

@@ -3,7 +3,7 @@ import process from "node:process";
 import {UserModel} from "@util/models";
 import {NextResponse} from "next/server";
 import {FeeType} from "@types";
-import {formatDate, getRegistrationOpenDate, getRegistrationPhase} from "@util/date";
+import {getRegistrationCheckoutBlockedMessage, isRegistrationCheckoutAllowed} from "@util/date";
 
 const stripeSecretKey = `${process.env.TEST_MODE === 'false'
     ? process.env.STRIPE_SECRET_KEY_LIVE
@@ -19,18 +19,10 @@ export interface FeeMetaData {
 }
 
 export async function handleCheckout(profileData: UserModel, feeType: FeeType) {
-    if (feeType === 'registration') {
-        const phase = getRegistrationPhase();
-        if (phase === 'not-yet-open') {
-            return NextResponse.json({
-                message: `Application submission is not open yet. You can save your profile now; submissions open ${formatDate(getRegistrationOpenDate())}.`
-            }, {status: 403});
-        }
-        if (phase === 'closed') {
-            return NextResponse.json({
-                message: 'Artist registration is closed for this year\'s event.'
-            }, {status: 403});
-        }
+    if (feeType === 'registration' && !isRegistrationCheckoutAllowed()) {
+        return NextResponse.json({
+            message: getRegistrationCheckoutBlockedMessage()
+        }, {status: 403});
     }
 
     const lineItem = {

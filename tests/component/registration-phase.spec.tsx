@@ -2,6 +2,7 @@ import {test, expect} from '@playwright/experimental-ct-react';
 import {
     getApplicationStatusText,
     getRegistrationPhase,
+    isRegistrationCheckoutAllowed,
 } from '@util/date';
 import {ArtistStepper} from '@components/User/ArtistStepper';
 import ApplicationsClosedInfo from '@components/Info/ApplicationsClosedInfo';
@@ -41,6 +42,13 @@ test.describe('registration phase helpers', () => {
         setRegistrationWindow('2020-01-01 12:00:00', '2020-10-01 12:00:00');
         expect(getRegistrationPhase(new Date('2020-10-03T12:00:00'))).toBe('closed');
         expect(getApplicationStatusText(new Date('2020-10-03T12:00:00'))).toMatch(/closed/i);
+        expect(isRegistrationCheckoutAllowed(new Date('2020-10-03T12:00:00'))).toBe(false);
+    });
+
+    test('allows checkout only while registration is open', async () => {
+        setRegistrationWindow('2020-01-01 12:00:00', '2099-10-01 12:00:00');
+        expect(isRegistrationCheckoutAllowed(new Date('2019-12-01T12:00:00'))).toBe(false);
+        expect(isRegistrationCheckoutAllowed(new Date('2026-08-12T12:00:00'))).toBe(true);
     });
 });
 

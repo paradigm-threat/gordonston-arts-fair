@@ -6,6 +6,7 @@ import {addTransaction} from '@util/transActions';
 import {fetchProfileByID, updateUserStatus} from '@util/profileActions';
 import {addUserUserLogModel} from "@util/logActions";
 import {FeeMetaData} from "@util/checkout";
+import {isRegistrationCheckoutAllowed} from '@util/date';
 
 export async function POST(request: Request) {
     const body = await request.text();
@@ -80,6 +81,15 @@ export async function POST(request: Request) {
 
                 switch (feeType) {
                     case 'registration':
+                        if (!isRegistrationCheckoutAllowed()) {
+                            await addUserUserLogModel(
+                                userID,
+                                'error',
+                                'Registration fee payment received while submissions are not open; status left unchanged'
+                            );
+                            console.error('Rejected early registration fee status update for user', userID);
+                            break;
+                        }
                         switch (profileInfo.status) {
                             case 'imported':
                             case 'registered':

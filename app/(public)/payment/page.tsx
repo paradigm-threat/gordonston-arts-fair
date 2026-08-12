@@ -5,6 +5,8 @@ import {fetchTransactions} from '@util/transActions';
 import {UserModel} from "@util/models";
 import process from "node:process";
 import {Typography} from "@mui/material";
+import ApplicationsClosedInfo from '@components/Info/ApplicationsClosedInfo';
+import {getRegistrationPhase} from '@util/date';
 
 export const metadata = {
     title: 'Artist Payment',
@@ -54,8 +56,8 @@ export default async function PublicPaymentPage({
 
     const userProfile = await fetchOrCreateProfileByEmail(email);
     const transactions = await fetchTransactions(userProfile.id);
+    const registrationPhase = getRegistrationPhase();
 
-    const registrationEndDate = new Date(`${process.env.NEXT_PUBLIC_REGISTRATION_END_DATE}`);
     const registrationFee = parseInt(`${process.env.NEXT_PUBLIC_REGISTRATION_FEE}`, 10);
     const boothFee = parseInt(`${process.env.NEXT_PUBLIC_BOOTH_FEE}`, 10);
     const boothDoubleFee = parseInt(`${process.env.NEXT_PUBLIC_BOOTH_DOUBLE_FEE}`, 10);
@@ -63,18 +65,17 @@ export default async function PublicPaymentPage({
     const hasPaidRegistration = transactions.some((t) => parseInt(`${t.amount}`, 10) === registrationFee);
     const hasPaidBooth = transactions.some((t) => parseInt(`${t.amount}`, 10) === boothFee);
 
-    const showRegistrationButton = !hasPaidRegistration;
+    const showRegistrationButton = !hasPaidRegistration && registrationPhase === 'open';
     const showBoothButton = hasPaidRegistration && !hasPaidBooth && userProfile.status === 'approved';
 
     const artistName = getDisplayName(userProfile, email);
 
-    if (!hasPaidRegistration && registrationEndDate < new Date()) {
+    if (!hasPaidRegistration && registrationPhase !== 'open') {
         return (
             <div className="mx-auto max-w-xl p-4">
-                <h1 className="mb-2 text-[color:var(--gold-color)] italic">Registration Closed</h1>
-                <p className="mb-6">Registration for the arts fair has closed. Please contact the fair organizers for
-                    any inquiries.
-                </p>
+                <h1 className="mb-2 text-[color:var(--gold-color)] italic">Artist Payment</h1>
+                <p className="mb-4">Artist: <span className="font-semibold">{artistName}</span></p>
+                <ApplicationsClosedInfo />
             </div>
         );
     }
