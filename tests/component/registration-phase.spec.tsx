@@ -6,6 +6,15 @@ import {
 } from '@util/date';
 import {ArtistStepper} from '@components/User/ArtistStepper';
 import ApplicationsClosedInfo from '@components/Info/ApplicationsClosedInfo';
+import {
+    ApplicationStatusText,
+    WhenRegistrationPhase,
+} from '@components/Info/WhenRegistrationPhase';
+import {
+    hasPaidBoothThisCycle,
+    hasPaidRegistrationThisCycle,
+    hasPriorCycleRegistrationPayment,
+} from '@util/payments';
 
 const ORIGINAL_ENV = {
     open: process.env.NEXT_PUBLIC_REGISTRATION_OPEN_DATE,
@@ -102,5 +111,70 @@ test.describe('ApplicationsClosedInfo', () => {
         await mount(<ApplicationsClosedInfo now={new Date('2099-12-01T12:00:00')} />);
 
         await expect(page.getByText(/Applications are closed/i)).toBeVisible();
+    });
+});
+
+test.describe('WhenRegistrationPhase', () => {
+    test('renders only the matching registration-phase copy', async ({mount, page}) => {
+        await mount(
+            <>
+                <WhenRegistrationPhase phase="not-yet-open" now={new Date('2020-01-01T12:00:00')}>
+                    <span>pre-window copy</span>
+                </WhenRegistrationPhase>
+                <WhenRegistrationPhase phase="open" now={new Date('2020-01-01T12:00:00')}>
+                    <span>in-window copy</span>
+                </WhenRegistrationPhase>
+            </>
+        );
+
+        await expect(page.getByText('pre-window copy')).toBeVisible();
+        await expect(page.getByText('in-window copy')).toHaveCount(0);
+    });
+
+    test('shows open-window status text during the application period', async ({mount, page}) => {
+        await mount(<ApplicationStatusText now={new Date('2026-09-01T12:00:00')} />);
+
+        await expect(page.getByText(/Applications open until/i)).toBeVisible();
+    });
+});
+
+test.describe('fee cycle helpers', () => {
+    test.beforeEach(() => {
+        setRegistrationWindow('2026-08-15 12:00:00', '2026-10-01 12:00:00');
+    });
+
+    test('ignores last year registration payments for returning artists', async () => {
+        const lastYear = [{
+            type: 'charge.succeeded' as const,
+            amount: '15.00',
+            createdAt: '2025-09-04T16:57:18.886Z',
+        }];
+
+        expect(hasPaidRegistrationThisCycle(lastYear, 'registered')).toBe(false);
+        expect(hasPaidRegistrationThisCycle(lastYear, 'imported')).toBe(false);
+        expect(hasPriorCycleRegistrationPayment(lastYear)).toBe(true);
+    });
+
+    test('counts this-cycle registration payments and submitted status', async () => {
+        const thisCycle = [{
+            type: 'charge.succeeded' as const,
+            amount: '15.00',
+            createdAt: '2026-08-15T13:16:16.279Z',
+        }];
+
+        expect(hasPaidRegistrationThisCycle(thisCycle, 'registered')).toBe(true);
+        expect(hasPaidRegistrationThisCycle([], 'submitted')).toBe(true);
+        expect(hasPriorCycleRegistrationPayment(thisCycle)).toBe(false);
+    });
+
+    test('ignores last year booth payments until this cycle is paid', async () => {
+        const lastYearBooth = [{
+            type: 'charge.succeeded' as const,
+            amount: '85.00',
+            createdAt: '2025-12-30T19:53:09.536Z',
+        }];
+
+        expect(hasPaidBoothThisCycle(lastYearBooth, 'approved')).toBe(false);
+        expect(hasPaidBoothThisCycle(lastYearBooth, 'paid')).toBe(true);
     });
 });

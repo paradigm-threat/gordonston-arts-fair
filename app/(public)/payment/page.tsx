@@ -7,6 +7,7 @@ import process from "node:process";
 import {Typography} from "@mui/material";
 import ApplicationsClosedInfo from '@components/Info/ApplicationsClosedInfo';
 import {getRegistrationPhase} from '@util/date';
+import {hasPaidBoothThisCycle, hasPaidRegistrationThisCycle} from '@util/payments';
 
 export const metadata = {
     title: 'Artist Payment',
@@ -62,8 +63,8 @@ export default async function PublicPaymentPage({
     const boothFee = parseInt(`${process.env.NEXT_PUBLIC_BOOTH_FEE}`, 10);
     const boothDoubleFee = parseInt(`${process.env.NEXT_PUBLIC_BOOTH_DOUBLE_FEE}`, 10);
 
-    const hasPaidRegistration = transactions.some((t) => parseInt(`${t.amount}`, 10) === registrationFee);
-    const hasPaidBooth = transactions.some((t) => parseInt(`${t.amount}`, 10) === boothFee);
+    const hasPaidRegistration = hasPaidRegistrationThisCycle(transactions, userProfile.status);
+    const hasPaidBooth = hasPaidBoothThisCycle(transactions, userProfile.status);
 
     const showRegistrationButton = !hasPaidRegistration && registrationPhase === 'open';
     const showBoothButton = hasPaidRegistration && !hasPaidBooth && userProfile.status === 'approved';

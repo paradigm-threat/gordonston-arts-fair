@@ -1,4 +1,5 @@
 import {test, expect} from '@playwright/test';
+import {isRegistrationCheckoutAllowed} from '../../util/date';
 
 test.describe('Checkout API', () => {
     test('public checkout rejects missing email', async ({request}) => {
@@ -23,13 +24,7 @@ test.describe('Checkout API', () => {
     });
 
     test('public registration checkout is blocked before open date', async ({request}) => {
-        const apply = await request.get('/apply');
-        const html = await apply.text();
-        const submissionsNotOpen = /save your profile now/i.test(html)
-            || /not open for submission yet/i.test(html)
-            || /Applications open Saturday, August 15th, 2026/i.test(html);
-
-        test.skip(!submissionsNotOpen, 'Registration window is already open in this environment');
+        test.skip(isRegistrationCheckoutAllowed(), 'Registration window is already open in this environment');
 
         const response = await request.post('/api/checkout-sessions-public/registration', {
             data: {email: 'playwright-registration-gate@example.com'},
@@ -41,15 +36,11 @@ test.describe('Checkout API', () => {
     });
 
     test('public payment page hides registration checkout before open date', async ({page}) => {
+        test.skip(isRegistrationCheckoutAllowed(), 'Registration window is already open in this environment');
+
         await page.goto('/payment?email=playwright-registration-gate@example.com', {
             waitUntil: 'domcontentloaded',
         });
-
-        const body = await page.locator('body').innerText();
-        const submissionsNotOpen = /not open for submission yet/i.test(body)
-            || /Applications are closed/i.test(body);
-
-        test.skip(!submissionsNotOpen, 'Registration window is already open in this environment');
 
         await expect(page.getByRole('button', {name: /Pay Registration Fee/i})).toHaveCount(0);
     });

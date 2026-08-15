@@ -23,6 +23,7 @@ import type {AlertColor} from '@mui/material/Alert';
 import PaymentModal from '@components/Modal/PaymentModal';
 import {useRouter} from 'next/navigation';
 import {convertImageToJPG} from "@util/convertImg";
+import {logClientError} from '@util/logActions';
 
 interface ProfileUploadsProps {
     adminMode?: boolean,
@@ -121,10 +122,13 @@ export function ProfileUploads({
                                             // }
                                         }));
                                     } catch (error: unknown) {
+                                        const statusMessage = error instanceof Error
+                                            ? error.message
+                                            : 'There was an error uploading your files.';
                                         // eslint-disable-next-line no-console
                                         console.error('Error uploading files', error);
-                                        // setStatus('error');
-                                        setMessage(['error', 'There was an error uploading your files.']);
+                                        setMessage(['error', statusMessage]);
+                                        await logClientError(`Upload failed: ${statusMessage}`);
                                         return;
                                     }
                                     // setStatus('ready');

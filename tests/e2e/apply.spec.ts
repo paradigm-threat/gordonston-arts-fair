@@ -23,6 +23,29 @@ test.describe('Apply page', () => {
         await expect(page.getByRole('button', {name: 'Register Now'})).toBeVisible();
     });
 
+    test('shows copy for the current registration window', async ({page}) => {
+        await page.goto('/apply', {waitUntil: 'domcontentloaded'});
+        await expect(page.getByRole('heading', {name: 'Artist Registration'})).toBeVisible();
+
+        const body = await page.locator('article').innerText();
+        const notYetOpen = /will open on/i.test(body);
+        const open = /Applications are open until/i.test(body);
+        const closed = /application period has closed/i.test(body);
+
+        expect([notYetOpen, open, closed].filter(Boolean)).toHaveLength(1);
+
+        if (open) {
+            await expect(page.getByText(/Applications are open until/i)).toBeVisible();
+            await expect(page.getByText(/save your profile now/i)).toHaveCount(0);
+        }
+        if (notYetOpen) {
+            await expect(page.getByText(/save your profile now/i)).toBeVisible();
+        }
+        if (closed) {
+            await expect(page.getByText(/application period has closed/i)).toBeVisible();
+        }
+    });
+
     test('links to terms from registration section', async ({page}) => {
         await page.goto('/apply#registration', {waitUntil: 'domcontentloaded'});
 

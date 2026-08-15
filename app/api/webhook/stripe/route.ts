@@ -7,13 +7,14 @@ import {fetchProfileByID, updateUserStatus} from '@util/profileActions';
 import {addUserUserLogModel} from "@util/logActions";
 import {FeeMetaData} from "@util/checkout";
 import {isRegistrationCheckoutAllowed} from '@util/date';
+import {appLog} from '@util/appLog';
 
 export async function POST(request: Request) {
     const body = await request.text();
     const sig = (await headers()).get('stripe-signature');
 
     if (!sig) {
-        console.error('No stripe signature found');
+        appLog('stripe.webhook.rejected', {reason: 'missing-signature'}, 'error');
         return NextResponse.json(
             {error: 'No stripe signature found'},
             {status: 400}
@@ -22,42 +23,28 @@ export async function POST(request: Request) {
 
     let event;
 
-    // Initialize Stripe with type checking for the secret key
     if (!process.env.STRIPE_SECRET_WEBHOOK_KEY) {
         throw new Error('STRIPE_SECRET_WEBHOOK_KEY is not defined');
     }
 
     const stripe = new Stripe(process.env.STRIPE_SECRET_WEBHOOK_KEY);
-
-    // Type check webhook secret
-    if (!process.env.STRIPE_SECRET_WEBHOOK_KEY) {
-        throw new Error('STRIPE_SECRET_WEBHOOK_KEY is not defined');
-    }
-
     const endpointSecret = process.env.STRIPE_SECRET_WEBHOOK_KEY;
 
     try {
         event = stripe.webhooks.constructEvent(body, sig, endpointSecret);
     } catch (err) {
         const error = err instanceof Error ? err.message : 'Unknown error';
-        console.error('Error verifying webhook signature:', error);
+        appLog('stripe.webhook.rejected', {reason: 'bad-signature', error}, 'error');
         return NextResponse.json(
             {error: `Webhook Error: ${error}`},
             {status: 400}
         );
     }
 
-    // Handle the event
     switch (event.type) {
         case 'checkout.session.completed':
-            console.log('Checkout complete', event);
-            // Handle successful payment
+            appLog('stripe.checkout.completed', {eventId: event.id});
             break;
-        // case 'charge.dispute.funds_reinstated':
-        // case 'charge.dispute.funds_withdrawn':
-        // case 'charge.refund.updated':
-        // case 'charge.expired':
-        // case 'charge.pending':
         case 'charge.refunded':
         case 'charge.succeeded': {
             const {
@@ -74,7 +61,13 @@ export async function POST(request: Request) {
                 userID,
                 feeType
             } = metadata as unknown as FeeMetaData;
-            console.log('STRIPE', amount / 100, event.type);
+            appLog('stripe.charge', {
+                type: event.type,
+                amount: amount / 100,
+                userID,
+                feeType,
+                providerId: id,
+            });
             await addTransaction(userID, event.type, amount / 100, name, email, phone, id, event.data.object);
             if (userID) {
                 const profileInfo = await fetchProfileByID(userID);
@@ -87,13 +80,29 @@ export async function POST(request: Request) {
                                 'error',
                                 'Registration fee payment received while submissions are not open; status left unchanged'
                             );
-                            console.error('Rejected early registration fee status update for user', userID);
+                            appLog('stripe.status.skipped', {
+                                userID,
+                                feeType,
+                                reason: 'registration-window',
+                                status: profileInfo.status,
+                            }, 'error');
                             break;
                         }
                         switch (profileInfo.status) {
                             case 'imported':
                             case 'registered':
                                 await updateUserStatus(userID, 'submitted', 'Registration fee paid');
+                                break;
+                            case 'submitted':
+                            case 'approved':
+                            case 'standby':
+                            case 'declined':
+                            case 'paid':
+                                appLog('stripe.status.idempotent', {
+                                    userID,
+                                    feeType,
+                                    status: profileInfo.status,
+                                });
                                 break;
                             default:
                                 await addUserUserLogModel(userID, 'error', 'Registration fee paid, but profile status is not imported or registered');
@@ -106,22 +115,29 @@ export async function POST(request: Request) {
                             case 'approved':
                                 await updateUserStatus(userID, 'paid', 'Booth fee paid');
                                 break;
+                            case 'paid':
+                                appLog('stripe.status.idempotent', {
+                                    userID,
+                                    feeType,
+                                    status: profileInfo.status,
+                                });
+                                break;
                             default:
                                 await addUserUserLogModel(userID, 'error', 'Booth fee paid, but profile status is not approved');
                                 break;
                         }
                         break;
                     default:
-                        console.error('Invalid fee type:' + feeType);
+                        appLog('stripe.charge.invalid_fee_type', {userID, feeType}, 'error');
                 }
             } else {
-                console.error('No userID passed back from stripe');
+                appLog('stripe.charge.missing_user', {providerId: id, feeType}, 'error');
             }
 
             break;
         }
         default:
-            console.log(`Unhandled event type: ${event.type}`);
+            appLog('stripe.webhook.unhandled', {type: event.type});
     }
 
     return NextResponse.json({message: 'Webhook received'});

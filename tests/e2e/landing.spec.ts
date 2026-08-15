@@ -14,9 +14,17 @@ test.describe('Landing page', () => {
     test('shows application window dates', async ({page}) => {
         await page.goto('/', {waitUntil: 'domcontentloaded'});
 
-        await expect(page.getByRole('main').getByText(/August 15th, 2026/)).toBeVisible();
         await expect(page.getByRole('main').getByText(/October 1st, 2026/).first()).toBeVisible();
         await expect(page.getByRole('main').getByText(/November 1st, 2026/).first()).toBeVisible();
+    });
+
+    test('header application status matches the current registration window', async ({page}) => {
+        await page.goto('/', {waitUntil: 'domcontentloaded'});
+
+        const headerStatus = page.locator('header').getByText(
+            /Applications open until|Applications open Saturday|application period is closed/i
+        );
+        await expect(headerStatus.first()).toBeVisible();
     });
 
     test('has no critical accessibility violations', async ({page}) => {

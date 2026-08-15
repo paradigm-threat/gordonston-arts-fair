@@ -178,7 +178,7 @@ export class UserLogModel extends Model {
     user_id!: number | null;
 
     @AllowNull(false)
-    @Column(DataType.ENUM('log-in', 'log-in-error', 'log-out', 'register', 'register-error', 'password-reset', 'password-reset-error', 'message', 'message-error', 'status-change'))
+    @Column(DataType.ENUM('log-in', 'log-in-error', 'log-out', 'register', 'register-error', 'password-reset', 'password-reset-error', 'message', 'message-error', 'status-change', 'error'))
     type!: LogType;
 
     @AllowNull(false)

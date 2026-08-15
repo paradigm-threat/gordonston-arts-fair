@@ -15,6 +15,9 @@ export const metadata: Metadata = {
     description: 'Created by Ari Asulin',
 };
 
+// Re-evaluate registration-window copy (open / not-yet-open / closed) on each request.
+export const dynamic = 'force-dynamic';
+
 export default function RootLayout({
                                        children,
                                    }: Readonly<{

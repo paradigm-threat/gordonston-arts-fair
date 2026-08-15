@@ -1,4 +1,5 @@
-import {formatDate, getRegistrationPhase, getTimeSpan} from "../../util/date";
+import {formatDate} from "../../util/date";
+import {WhenRegistrationPhase} from "@components/Info/WhenRegistrationPhase";
 
 export const eventDate = new Date(process.env.NEXT_PUBLIC_EVENT_DATE);
 export const eventYear = eventDate.getFullYear();
@@ -20,13 +21,11 @@ export const metadata = {
 export {formatDate};
 export const eventDayBeforeDate = new Date(eventDate.getTime() - 1000 * 60 * 60 * 24);
 export const registrationOpenDate = new Date(process.env.NEXT_PUBLIC_REGISTRATION_OPEN_DATE);
-export const registrationTimeUntil = getTimeSpan(new Date(), registrationOpenDate);
 export const registrationEndDate = new Date(process.env.NEXT_PUBLIC_REGISTRATION_END_DATE);
 export const registrationFee = process.env.NEXT_PUBLIC_REGISTRATION_FEE;
 export const registrationFeeDate = new Date(process.env.NEXT_PUBLIC_REGISTRATION_FEE_DATE);
 export const notifyStatusDate = new Date(process.env.NEXT_PUBLIC_NOTIFY_DATE);
 export const boothFee = process.env.NEXT_PUBLIC_BOOTH_FEE;
-export const registrationPhase = getRegistrationPhase();
 
 
 <h2 className='m-auto text-[color:var(--gold-color)] font-bold italic'>Gordonston Art Fair</h2>
@@ -39,14 +38,23 @@ There will be food trucks, live music, and a supervised children's crafts area.
 
 Welcome to the application page. Please carefully read the following:
 
-* This event takes place on {formatDate(eventDate)}.
-* Online applications will be accepted beginning {formatDate(registrationOpenDate)}.
-* Applications must be submitted by {formatDate(registrationEndDate)} with a non-refundable application fee of ${registrationFee}.
-* Artists/artisans will be notified of their status (accepted, declined, or waiting list) by {formatDate(notifyStatusDate)}.
-* If you are accepted, the ${boothFee} booth fee must be paid by {formatDate(registrationFeeDate)}.
-* As our vending space is limited, we may fill up before the deadline. In this event, we will maintain a
-waiting list.
-* Only online applications will be accepted.
+<ul>
+<li>This event takes place on {formatDate(eventDate)}.</li>
+<WhenRegistrationPhase phase="not-yet-open">
+<li>Online applications will be accepted beginning {formatDate(registrationOpenDate)}.</li>
+<li>Applications must be submitted by {formatDate(registrationEndDate)} with a non-refundable application fee of ${registrationFee}.</li>
+</WhenRegistrationPhase>
+<WhenRegistrationPhase phase="open">
+<li>Online applications opened {formatDate(registrationOpenDate)} and must be submitted by {formatDate(registrationEndDate)} with a non-refundable application fee of ${registrationFee}.</li>
+</WhenRegistrationPhase>
+<WhenRegistrationPhase phase="closed">
+<li>The online application period closed on {formatDate(registrationEndDate)}.</li>
+</WhenRegistrationPhase>
+<li>Artists/artisans will be notified of their status (accepted, declined, or waiting list) by {formatDate(notifyStatusDate)}.</li>
+<li>If you are accepted, the ${boothFee} booth fee must be paid by {formatDate(registrationFeeDate)}.</li>
+<li>As our vending space is limited, we may fill up before the deadline. In this event, we will maintain a waiting list.</li>
+<li>Only online applications will be accepted.</li>
+</ul>
 
 
 <h2 className='m-auto text-[color:var(--gold-color)] italic pt-8 md:pt-18'>History of Gordonston</h2>
@@ -148,7 +156,7 @@ Artists will be offered a number of amenities to make their experience as enjoya
     <div>
         ## Setup
 
-        >Artist setup on Friday (Feb 27th) will be organized into 2-hour time slots.
+        >Artist setup on {formatDate(eventDayBeforeDate, true, false)} will be organized into 2-hour time slots.
         Please contact Gordonston Art Fair if you need an early morning Saturday setup.
 
         ## Security
@@ -186,7 +194,7 @@ Artists will be offered a number of amenities to make their experience as enjoya
         Please get involved
 
         **Volunteers** are **needed** throughout the planning and organizing of the event and especially during the
-        weekend of Feb 28th. We invite you to sign up for a volunteer shift (or two) to help us host this
+        weekend of {formatDate(eventDate, true, false)}. We invite you to sign up for a volunteer shift (or two) to help us host this
         event. Several tasks
         are
         available to meet all interests, skill levels and talents, these include…
@@ -233,28 +241,28 @@ Ave. at #10 Edgewood Road, Savannah, Georgia 31404
 
 ## I would like an exhibitor booth, what do I do?
 
-{registrationPhase === 'not-yet-open' && (
-<>
+<WhenRegistrationPhase phase="not-yet-open">
+
 Online applications for exhibitor booths will open on {formatDate(registrationOpenDate)}.
 The application fee is ${registrationFee}.00. If accepted, the booth fee is ${boothFee}.00 and must be paid by {formatDate(registrationFeeDate)}.
 You may create an account and save your profile now; you will be able to submit your application when the window opens.
-</>
-)}
 
-{registrationPhase === 'open' && (
-<>
+</WhenRegistrationPhase>
+
+<WhenRegistrationPhase phase="open">
+
 Applications are currently open until {formatDate(registrationEndDate)}.
 Apply for an exhibitor booth online. The application fee is ${registrationFee}.00.
 If accepted, the booth fee is ${boothFee}.00 and must be paid by {formatDate(registrationFeeDate)}.
-</>
-)}
 
-{registrationPhase === 'closed' && (
-<>
+</WhenRegistrationPhase>
+
+<WhenRegistrationPhase phase="closed">
+
 The application period for artists ended at midnight on {formatDate(registrationEndDate)}.
 Please check back next year or contact [admin@gordonstonartfair.com](mailto:admin@gordonstonartfair.com) about waitlist availability.
-</>
-)}
+
+</WhenRegistrationPhase>
 
 
 <div className='pb-16'/>

@@ -264,17 +264,31 @@ export async function updateUserStatus(
     await addUserUserLogModel(userID, 'status-change', message);
 
     if (sendTemplate && userProfile.email) {
-        const Template = await getUserStatusTemplate(userID, newStatus);
-        if (Template) {
-            const emailResult = await sendMail(Template);
-            await addUserUserLogModel(userID, 'message', emailResult.message);
+        try {
+            const Template = await getUserStatusTemplate(userID, newStatus);
+            if (Template) {
+                const emailResult = await sendMail(Template);
+                await addUserUserLogModel(
+                    userID,
+                    emailResult.status === 'error' ? 'error' : 'message',
+                    emailResult.message
+                );
+                return {
+                    message: emailResult.status === 'error'
+                        ? `Status updated successfully to ${newStatus}. ${emailResult.message}`
+                        : `Status updated successfully to ${newStatus}. Email sent to artist.`,
+                };
+            }
             return {
-                message: `Status updated successfully to ${newStatus}. Email sent to artist.`,
+                message: `Status updated successfully to ${newStatus}. No Email template is associate with status change.`,
+            };
+        } catch (error) {
+            const errMessage = error instanceof Error ? error.message : 'Unknown email error';
+            await addUserUserLogModel(userID, 'error', `Status updated to ${newStatus}, but email failed: ${errMessage}`);
+            return {
+                message: `Status updated successfully to ${newStatus}. Email failed: ${errMessage}`,
             };
         }
-        return {
-            message: `Status updated successfully to ${newStatus}. No Email template is associate with status change.`,
-        };
     }
 
     return {

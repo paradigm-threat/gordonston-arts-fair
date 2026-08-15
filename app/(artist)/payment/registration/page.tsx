@@ -10,6 +10,7 @@ import UserTransactionView from '@components/User/UserTransactionView';
 import ApplicationPreview from '@components/User/ApplicationPreview';
 import ApplicationsClosedInfo from '@components/Info/ApplicationsClosedInfo';
 import { getRegistrationPhase } from '@util/date';
+import { hasPaidRegistrationThisCycle, hasPriorCycleRegistrationPayment } from '@util/payments';
 
 export const metadata = {
   title: 'Artist Checkout',
@@ -27,15 +28,19 @@ export default async function CheckoutPage() {
     status: profileStatus,
   } = await fetchProfileStatus(userProfile);
   const transactions = await fetchTransactions(userProfile.id);
-  const alreadyPaid = transactions.find((t) => parseInt(`${t.amount}`, 10) === feeAmount) !== undefined;
+  const alreadyPaid = hasPaidRegistrationThisCycle(transactions, userProfile.status);
+  const priorYearPayment = !alreadyPaid && hasPriorCycleRegistrationPayment(transactions);
   const userUploads = await fetchUserFiles(userProfile.id);
   const {
     complete: eligibleToRegister,
     message: eligibleToRegisterString
   } = profileStatus;
   let feeText = alreadyPaid
-    ? 'You have already paid this fee.'
+    ? 'You have already paid this year\'s registration fee.'
     : `Please click below to pay the $${feeAmount} registration fee.`;
+  if (priorYearPayment) {
+    feeText = `Please pay this year's $${feeAmount} registration fee. Last year's payment does not carry over.`;
+  }
   if (!eligibleToRegister) {
     feeText = `You have not yet completed your profile. ${eligibleToRegisterString}`;
   }

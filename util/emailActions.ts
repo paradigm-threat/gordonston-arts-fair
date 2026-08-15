@@ -35,8 +35,6 @@ export async function sendMail(options: Mail.Options): Promise<MailResult> {
     return { status: 'error', message: `Invalid subject: ${JSON.stringify(options)}` };
   }
 
-  const isVerified = await transporter.verify();
-
   const testMode = process.env.TEST_MODE !== 'false';
 
   // Normalize recipients to an array of strings
@@ -44,25 +42,49 @@ export async function sendMail(options: Mail.Options): Promise<MailResult> {
     ? (toValue as string[])
     : `${toValue}`.split(',').map((s) => s.trim()).filter(Boolean);
 
-  if (!testMode) {
-    // Send a single email addressed to multiple recipients
-    const info = await transporter.sendMail({
-      from: EMAIL_ADMIN,
-      bcc: EMAIL_BCC,
-      ...options,
-      to: recipients.join(', '),
-    });
-    console.log('Mail sent to', recipients, `verified=${isVerified}`, info.messageId);
-  } else {
-    console.log('TEST MODE: No actual mail was sent', subject, 'recipients:', recipients);
-  }
+  try {
+    const isVerified = await transporter.verify();
 
-  return {
-    status: 'success',
-    message: testMode
-      ? `TEST MODE: ${subject} (to ${recipients.length} recipients)`
-      : `Email sent: ${subject} (to ${recipients.length} recipients)`,
-  };
+    if (!testMode) {
+      // Send a single email addressed to multiple recipients
+      const info = await transporter.sendMail({
+        from: EMAIL_ADMIN,
+        bcc: EMAIL_BCC,
+        ...options,
+        to: recipients.join(', '),
+      });
+      console.log(JSON.stringify({
+        event: 'email.sent',
+        ts: new Date().toISOString(),
+        subject,
+        recipientCount: recipients.length,
+        verified: isVerified,
+        messageId: info.messageId,
+      }));
+    } else {
+      console.log('TEST MODE: No actual mail was sent', subject, 'recipients:', recipients);
+    }
+
+    return {
+      status: 'success',
+      message: testMode
+        ? `TEST MODE: ${subject} (to ${recipients.length} recipients)`
+        : `Email sent: ${subject} (to ${recipients.length} recipients)`,
+    };
+  } catch (error) {
+    const errMessage = error instanceof Error ? error.message : 'Unknown email error';
+    console.error(JSON.stringify({
+      event: 'email.failed',
+      ts: new Date().toISOString(),
+      subject,
+      recipientCount: recipients.length,
+      error: errMessage,
+    }));
+    return {
+      status: 'error',
+      message: `Email failed: ${errMessage}`.slice(0, 256),
+    };
+  }
 }
 
 // const LOGIN_EMAIL_REQUESTS: {

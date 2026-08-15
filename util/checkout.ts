@@ -4,6 +4,9 @@ import {UserModel} from "@util/models";
 import {NextResponse} from "next/server";
 import {FeeType} from "@types";
 import {getRegistrationCheckoutBlockedMessage, isRegistrationCheckoutAllowed} from "@util/date";
+import {fetchTransactions} from "@util/transActions";
+import {hasPaidBoothThisCycle, hasPaidRegistrationThisCycle} from "@util/payments";
+import {appLog} from "@util/appLog";
 
 const stripeSecretKey = `${process.env.TEST_MODE === 'false'
     ? process.env.STRIPE_SECRET_KEY_LIVE
@@ -20,10 +23,41 @@ export interface FeeMetaData {
 
 export async function handleCheckout(profileData: UserModel, feeType: FeeType) {
     if (feeType === 'registration' && !isRegistrationCheckoutAllowed()) {
-        return NextResponse.json({
-            message: getRegistrationCheckoutBlockedMessage()
-        }, {status: 403});
+        const message = getRegistrationCheckoutBlockedMessage();
+        appLog('checkout.blocked', {
+            userId: profileData.id,
+            feeType,
+            reason: 'registration-window',
+        }, 'error');
+        return NextResponse.json({message}, {status: 403});
     }
+
+    const transactions = await fetchTransactions(profileData.id);
+    if (feeType === 'registration' && hasPaidRegistrationThisCycle(transactions, profileData.status)) {
+        appLog('checkout.blocked', {
+            userId: profileData.id,
+            feeType,
+            reason: 'already-paid-this-cycle',
+            status: profileData.status,
+        });
+        return NextResponse.json({
+            message: 'This year\'s registration fee has already been paid.'
+        }, {status: 409});
+    }
+    if ((feeType === 'booth' || feeType === 'booth-double')
+        && hasPaidBoothThisCycle(transactions, profileData.status)) {
+        appLog('checkout.blocked', {
+            userId: profileData.id,
+            feeType,
+            reason: 'already-paid-this-cycle',
+            status: profileData.status,
+        });
+        return NextResponse.json({
+            message: 'This year\'s booth fee has already been paid.'
+        }, {status: 409});
+    }
+
+    appLog('checkout.session.create', {userId: profileData.id, feeType, status: profileData.status});
 
     const lineItem = {
         price_data: {
@@ -77,6 +111,11 @@ export async function handleCheckout(profileData: UserModel, feeType: FeeType) {
         cancel_url: `${BASE_URL}/payment/failure`,
     };
     const stripeSession = await stripe.checkout.sessions.create(sessionParams);
+    appLog('checkout.session.created', {
+        userId: profileData.id,
+        feeType,
+        sessionId: stripeSession.id,
+    });
 
     return NextResponse.json({sessionId: stripeSession.id});
 }

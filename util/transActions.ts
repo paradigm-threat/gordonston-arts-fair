@@ -7,6 +7,7 @@ import { UserTransactionModel } from '@util/models';
 import { TransactionType, UserStatus } from '@types';
 import { validateAdminSession } from '@util/session';
 import { fetchProfileByID, fetchProfileFromSession, updateUserStatus } from '@util/profileActions';
+import { appLog } from '@util/appLog';
 
 export interface UserTransactionSearchParams {
     type?: TransactionType,
@@ -46,7 +47,13 @@ export async function addTransaction(
 ) {
     await ensureDatabase();
 
-    await UserTransactionModel.create({
+    const existing = await UserTransactionModel.findOne({where: {provider_id}});
+    if (existing) {
+        appLog('stripe.transaction.duplicate', {provider_id, userID, type});
+        return existing.toJSON() as UserTransactionModel;
+    }
+
+    const created = await UserTransactionModel.create({
         user_id: userID,
         type,
         amount,
@@ -57,6 +64,7 @@ export async function addTransaction(
         provider_id,
         content
     });
+    return created.toJSON() as UserTransactionModel;
 }
 
 export async function addManualTransaction(

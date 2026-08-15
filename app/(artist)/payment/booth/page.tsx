@@ -7,6 +7,7 @@ import {Stack, Typography} from '@mui/material';
 import process from 'node:process';
 import {fetchTransactions} from '@util/transActions';
 import UserTransactionView from '@components/User/UserTransactionView';
+import {hasPaidBoothThisCycle} from '@util/payments';
 
 export const metadata = {
     title: 'Artist Checkout',
@@ -25,10 +26,7 @@ export default async function CheckoutPage() {
         status: profileStatus,
     } = await fetchProfileStatus(userProfile);
     const transactions = await fetchTransactions(userProfile.id);
-    const alreadyPaid = transactions.find((t) =>
-        (parseInt(`${t.amount}`, 10) === feeAmount) ||
-        (parseInt(`${t.amount}`, 10) === feeAmountDouble)
-    ) !== undefined;
+    const alreadyPaid = hasPaidBoothThisCycle(transactions, userProfile.status);
     const eligibleToRegister = userProfile.status === 'approved';
     const USER_LABEL = process.env.NEXT_PUBLIC_USER_LABEL || 'User';
 
@@ -39,7 +37,7 @@ export default async function CheckoutPage() {
             <ArtistStepper profileStatus={profileStatus}/>
 
             {alreadyPaid ? (
-                <p>You have already paid this fee.</p>
+                <p>You have already paid this year&apos;s booth fee.</p>
             ) : <>
                 <Checkout
                     title="Pay Booth Fee"

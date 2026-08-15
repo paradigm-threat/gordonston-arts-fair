@@ -33,16 +33,26 @@ export default defineConfig({
                 ])
             ),
             resolve: {
-                alias: {
-                    '@components': path.resolve(__dirname, './components'),
-                    '@util': path.resolve(__dirname, './util'),
-                    '@types': path.resolve(__dirname, './types.ts'),
-                    '@template': path.resolve(__dirname, './template'),
-                    '@fragments': path.resolve(__dirname, './fragments'),
-                    '@app': path.resolve(__dirname, './app'),
-                    'next/navigation': path.resolve(__dirname, './tests/mocks/next-navigation.ts'),
-                    'next/link': path.resolve(__dirname, './tests/mocks/next-link.tsx'),
-                },
+                alias: [
+                    {
+                        find: '@util/logActions',
+                        replacement: path.resolve(__dirname, './tests/mocks/logActions.ts'),
+                    },
+                    {find: '@components', replacement: path.resolve(__dirname, './components')},
+                    {find: '@util', replacement: path.resolve(__dirname, './util')},
+                    {find: '@types', replacement: path.resolve(__dirname, './types.ts')},
+                    {find: '@template', replacement: path.resolve(__dirname, './template')},
+                    {find: '@fragments', replacement: path.resolve(__dirname, './fragments')},
+                    {find: '@app', replacement: path.resolve(__dirname, './app')},
+                    {
+                        find: 'next/navigation',
+                        replacement: path.resolve(__dirname, './tests/mocks/next-navigation.ts'),
+                    },
+                    {
+                        find: 'next/link',
+                        replacement: path.resolve(__dirname, './tests/mocks/next-link.tsx'),
+                    },
+                ],
             },
         },
     },

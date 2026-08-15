@@ -99,6 +99,7 @@ export function getProfileStatus(userRow: UserModel, userUploads: UserFileUpload
   returnValue.complete = true;
 
   switch (status) {
+    case 'imported':
     case 'registered':
       return {
         ...returnValue,
