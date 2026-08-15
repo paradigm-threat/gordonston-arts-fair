@@ -17,6 +17,7 @@ test.describe('AppearanceSelect', () => {
 
         const select = page.getByLabel('Appearance');
         await expect(select).toBeVisible();
+        await expect(select).toHaveAttribute('data-hydrated', 'true');
         await expect(select).toHaveValue('system');
         await select.selectOption('dark');
         await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');

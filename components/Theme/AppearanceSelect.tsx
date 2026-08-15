@@ -60,9 +60,14 @@ export function subscribeToAppearance(onChange: (theme: ResolvedTheme) => void) 
 
 export function AppearanceSelect() {
   const [preference, setPreference] = useState<AppearancePreference>('system');
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    setPreference(readStoredPreference());
+    const sync = () => setPreference(readStoredPreference());
+    sync();
+    setHydrated(true);
+    window.addEventListener(APPEARANCE_CHANGE_EVENT, sync);
+    return () => window.removeEventListener(APPEARANCE_CHANGE_EVENT, sync);
   }, []);
 
   return (
@@ -71,6 +76,7 @@ export function AppearanceSelect() {
       <select
         aria-label="Appearance"
         name="appearance"
+        data-hydrated={hydrated ? 'true' : 'false'}
         value={preference}
         onChange={(event) => {
           const next = event.target.value;

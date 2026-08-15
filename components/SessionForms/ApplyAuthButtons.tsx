@@ -13,7 +13,7 @@ export function ApplyAuthButtons() {
           Sign in
         </button>
       </SignInButton>
-      <SignUpButton mode="sign-up" forceRedirectUrl="/redirect">
+      <SignUpButton forceRedirectUrl="/redirect">
         <button type="button" className={buttonClassName}>
           Register Now
         </button>

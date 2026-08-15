@@ -6,6 +6,7 @@ test.describe('Appearance', () => {
 
         const appearance = page.locator('header').getByLabel('Appearance');
         await expect(appearance).toBeVisible();
+        await expect(appearance).toHaveAttribute('data-hydrated', 'true');
         await expect(appearance).toHaveValue('system');
 
         await appearance.selectOption('dark');
