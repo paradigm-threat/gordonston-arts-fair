@@ -6,9 +6,9 @@ import {ClerkSessionContent} from '@components/SessionForms/ClerkSessionContent'
 
 export function HeaderAccountTools() {
   return (
-    <>
+    <div className="header-tools">
       <AppearanceSelect />
       <ClerkSessionContent />
-    </>
+    </div>
   );
 }

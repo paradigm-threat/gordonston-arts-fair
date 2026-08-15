@@ -26,13 +26,15 @@ export default function ArtistLayout({
         <>
             <header>
                 <FloatingDiv className="header-container">
-                    <Link href="/">Home</Link>
-                    <Link href="/#gordonston-history">Gordonston</Link>
-                    <Link href="/#exhibitor-information">Exhibitors</Link>
-                    <Link href="/#artist-amenities">Amenities</Link>
-                    <Link href="/#volunteering">Volunteer</Link>
-                    <Link href="/#faq">FAQ</Link>
-                    <Link href="/apply#registration">Artists</Link>
+                    <nav className="header-nav" aria-label="Main">
+                        <Link href="/">Home</Link>
+                        <Link href="/#gordonston-history">Gordonston</Link>
+                        <Link href="/#exhibitor-information">Exhibitors</Link>
+                        <Link href="/#artist-amenities">Amenities</Link>
+                        <Link href="/#volunteering">Volunteer</Link>
+                        <Link href="/#faq">FAQ</Link>
+                        <Link href="/apply#registration">Artists</Link>
+                    </nav>
                     <HeaderAccountTools/>
                 </FloatingDiv>
             </header>

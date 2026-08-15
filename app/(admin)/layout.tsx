@@ -25,8 +25,10 @@ export default function AdminLayout({
         <>
             <header>
                 <FloatingDiv className="header-container">
-                    <Link href="/">Home</Link>
-                    <Link href="/user">User list</Link>
+                    <nav className="header-nav" aria-label="Main">
+                        <Link href="/">Home</Link>
+                        <Link href="/user">User list</Link>
+                    </nav>
                     <HeaderAccountTools/>
                 </FloatingDiv>
             </header>

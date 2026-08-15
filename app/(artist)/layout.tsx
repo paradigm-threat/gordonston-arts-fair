@@ -26,10 +26,12 @@ export default function ArtistLayout({
         <>
             <header>
                 <FloatingDiv className="header-container">
-                    <Link href="/">Home</Link>
-                    <Link href="/profile">Your Artist Profile</Link>
-                    <Link href="/profile/edit">Edit Profile</Link>
-                    <Link href="/profile/upload">Upload Images</Link>
+                    <nav className="header-nav" aria-label="Main">
+                        <Link href="/">Home</Link>
+                        <Link href="/profile">Your Artist Profile</Link>
+                        <Link href="/profile/edit">Edit Profile</Link>
+                        <Link href="/profile/upload">Upload Images</Link>
+                    </nav>
                     <HeaderAccountTools/>
                 </FloatingDiv>
             </header>

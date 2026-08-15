@@ -51,8 +51,8 @@ body {
 }
 
 header {
-  //color: var(--foreground-inverted-color);
-  background: var(--background-inverted-color);
+  background: var(--background-color);
+  color: var(--foreground-color);
 }
 
 
@@ -79,41 +79,62 @@ a:active {
 
 .header-container {
   display: flex;
-  padding: 0.25rem;
   flex-wrap: wrap;
-  column-gap: 0.75rem;
-  justify-content: space-evenly;
-  background-color: #000000;
-  color: var(--foreground-inverted-color) !important;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem 0.9rem;
+  padding: 0.15rem 1rem;
+  background: var(--background-color);
+  color: var(--foreground-color);
   font-size: 17px;
-  font-family: "Alegreya Sans", sans-serif;
+  font-family: inherit;
   font-weight: 400;
+  border-bottom: 1px solid color-mix(in srgb, var(--foreground-color) 14%, transparent);
 
-  span, a, button {
+  a, button {
     font-size: inherit;
     font-family: inherit;
     font-weight: inherit;
   }
 
-  span, a {
-    color: var(--link-color-inverted) !important;
-  }
-
-  /* unvisited link */
-  a:link {
-    color: var(--link-color-inverted);
+  a:link,
+  a:visited {
+    color: var(--link-color);
     text-decoration: none;
   }
 
-  /* visited link */
-  a:visited {
-    color: var(--link-color-visited-inverted);
-  }
-
-  a:hover {
+  a:hover,
+  a:focus-visible {
     color: var(--link-color-hover);
     text-decoration: underline;
   }
+}
+
+.header-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem 0.9rem;
+}
+
+.header-tools {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header-tools button {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: var(--link-color);
+  cursor: pointer;
+}
+
+.header-tools .appearance-control button {
+  color: inherit;
 }
 
 .footer-container {
@@ -122,24 +143,23 @@ a:active {
   flex-wrap: wrap;
   column-gap: 0.75rem;
   justify-content: space-evenly;
-  background-color: #000000;
-  color: var(--foreground-inverted-color);
+  background: var(--background-color);
+  color: var(--foreground-color);
+  border-top: 1px solid color-mix(in srgb, var(--foreground-color) 14%, transparent);
 
-  /* unvisited link */
   a:link {
-    color: var(--link-color-inverted);
+    color: var(--link-color);
   }
 
-  /* visited link */
   a:visited {
-    color: var(--link-color-visited-inverted);
+    color: var(--link-color-visited);
   }
 }
 
 .appearance-control {
   display: inline-flex;
   align-items: center;
-  gap: 0.15rem;
+  gap: 0;
   color: inherit;
   font: inherit;
 
@@ -178,7 +198,7 @@ a:active {
 
 .header-container .appearance-control,
 .footer-container .appearance-control {
-  color: var(--link-color-inverted);
+  color: var(--foreground-color);
 }
 
 .webmcp-hint {
@@ -187,7 +207,7 @@ a:active {
   padding: 0 1rem 0.75rem;
   font-size: 14px;
   text-align: center;
-  color: var(--link-color-inverted);
+  color: var(--foreground-color);
 }
 
 .skip-link {
@@ -299,5 +319,5 @@ a:focus-visible {
 /* Special handling for links in header/footer with inverted colors */
 .header-container a:focus-visible,
 .footer-container a:focus-visible {
-  outline-color: var(--link-color-inverted);
+  outline-color: var(--link-color-hover);
 }
