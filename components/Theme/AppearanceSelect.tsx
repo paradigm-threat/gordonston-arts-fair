@@ -1,7 +1,7 @@
 'use client';
 
 import React, {useEffect, useState} from 'react';
-import {MdComputer, MdDarkMode, MdLightMode} from 'react-icons/md';
+import {FaAdjust, FaMoon, FaSun} from 'react-icons/fa';
 import {
   APPEARANCE_COOKIE,
   APPEARANCE_OPTIONS,
@@ -13,9 +13,9 @@ import {
 } from '@util/appearance';
 
 const APPEARANCE_ICONS: Record<AppearancePreference, React.ComponentType<{size?: number}>> = {
-  system: MdComputer,
-  light: MdLightMode,
-  dark: MdDarkMode,
+  system: FaAdjust,
+  light: FaSun,
+  dark: FaMoon,
 };
 
 const APPEARANCE_CHANGE_EVENT = 'gaf-appearance';
@@ -90,6 +90,7 @@ export function AppearanceSelect() {
           <button
             key={option.value}
             type="button"
+            data-mode={option.value}
             aria-label={option.label}
             aria-pressed={preference === option.value}
             onClick={() => {
@@ -97,7 +98,7 @@ export function AppearanceSelect() {
               persistAppearancePreference(option.value);
             }}
           >
-            <Icon size={18} aria-hidden />
+            <Icon size={16} aria-hidden />
           </button>
         );
       })}

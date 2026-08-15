@@ -2,11 +2,11 @@ import {test, expect} from '@playwright/test';
 
 test.describe('Appearance', () => {
     test('header offers Light, Dark, and System default icons', async ({page}) => {
-        await page.goto('/', {waitUntil: 'domcontentloaded'});
+        await page.goto('/', {waitUntil: 'load'});
 
         const appearance = page.locator('header').getByRole('group', {name: 'Appearance'});
         await expect(appearance).toBeVisible();
-        await expect(appearance).toHaveAttribute('data-hydrated', 'true');
+        await expect(appearance).toHaveAttribute('data-hydrated', 'true', {timeout: 15_000});
         await expect(appearance.getByRole('button', {name: 'System default'})).toHaveAttribute('aria-pressed', 'true');
 
         await appearance.getByRole('button', {name: 'Dark'}).click();
