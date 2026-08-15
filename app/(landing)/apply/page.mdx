@@ -1,6 +1,6 @@
 import {formatDate} from "../../../util/date";
 import {WhenRegistrationPhase} from "@components/Info/WhenRegistrationPhase";
-import {SignUpButton} from '@clerk/nextjs'; // or @clerk/clerk-react for plain React apps
+import {ApplyAuthButtons} from '@components/SessionForms/ApplyAuthButtons';
 
 export const metadata = {
     title: 'Apply to Gordonston Art Fair',
@@ -114,14 +114,13 @@ must be present for the duration of the event.
 By registering as an artist,
 I accept and agree to the terms and conditions above.
 
-## Log in to Register as an Artist
+## Sign in or register as an artist
 
-<SignUpButton mode='sign-up'
-    forceRedirectUrl='/redirect'>
-    <button
-    className="mt-4 rounded-md bg-blue-700 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-400"
-    >Register Now</button>
-</SignUpButton>
+Returning exhibitors: use **Sign in** with the same email as last year.
+
+New applicants: use **Register Now**.
+
+<ApplyAuthButtons />
 
 If you have problems with this registration system and need assistance
 or have any questions related to the actual show or its jurying process,

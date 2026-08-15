@@ -50,6 +50,37 @@ export async function fetchProfileFromSession(): Promise<UserModel> {
     return fetchOrCreateProfileByEmail(email);
 }
 
+export async function fetchOwnApplicationStatusForAgent() {
+    try {
+        const userProfile = await fetchProfileFromSession();
+        const {status, uploads} = await fetchProfileStatus(userProfile);
+        const {fetchTransactions} = await import('@util/transActions');
+        const {hasPaidRegistrationThisCycle} = await import('@util/payments');
+        const transactions = await fetchTransactions(userProfile.id);
+        return {
+            loggedIn: true as const,
+            email: userProfile.email,
+            status: status.status,
+            complete: status.complete,
+            formFilled: status.formFilled,
+            message: status.message,
+            action: status.action || null,
+            photoCount: uploads.length,
+            paidRegistrationThisCycle: hasPaidRegistrationThisCycle(transactions, userProfile.status),
+            nextUrl: status.action === 'upload-files'
+                ? '/profile/upload'
+                : status.action === 'pay-fee-registration'
+                    ? '/payment/registration'
+                    : '/profile',
+        };
+    } catch {
+        return {
+            loggedIn: false as const,
+            nextUrl: '/apply#registration',
+        };
+    }
+}
+
 export async function fetchOrCreateProfileByEmail(email: string): Promise<UserModel> {
     await ensureDatabase();
 

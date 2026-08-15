@@ -1,6 +1,8 @@
 import DateLocationApply from '@fragments/date-location-apply.mdx';
 import Link from 'next/link';
 import { Box } from '@mui/material';
+import { AppearanceSelect } from '@components/Theme/AppearanceSelect';
+import { WebMcpHint } from '@components/WebMCP/WebMcpHint';
 
 interface FooterContentProps {
   showDates?: boolean
@@ -33,6 +35,8 @@ export function FooterContent({ showDates = false }: FooterContentProps) {
           {' / '}
           <Link href="/terms">Terms and Conditions</Link>
         </span>
+        {showDates && <AppearanceSelect />}
+        <WebMcpHint />
       </Box>
     </footer>
   );

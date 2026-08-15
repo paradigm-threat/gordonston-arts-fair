@@ -1,7 +1,6 @@
 'use client';
 
-// components/ThemeRegistry/theme.ts
-import { createTheme } from '@mui/material/styles';
+import {createTheme, type PaletteMode} from '@mui/material/styles';
 
 declare module '@mui/material/Button' {
   interface ButtonPropsSizeOverrides {
@@ -9,36 +8,32 @@ declare module '@mui/material/Button' {
   }
 }
 
-// const roboto = Roboto({
-//   weight: ['300', '400', '500', '700'],
-//   subsets: ['latin'],
-//   display: 'swap',
-// });
-
-const theme = createTheme({
-  typography: {
-    // fontFamily: roboto.style.fontFamily,
-  },
-  // palette: {
-  //   mode: 'light', // or 'dark'
-  //   primary: {
-  //     main: '#1976d2',
-  //   },
-  // },
-  components: {
-    MuiButton: {
-      variants: [
-        {
-          props: { size: 'x-small' },
-          style: {
-            textTransform: 'none',
-            fontSize: '8px',
-            padding: '2px 8px',
+export function createAppTheme(mode: PaletteMode) {
+  return createTheme({
+    palette: {
+      mode,
+      background: {
+        default: mode === 'dark' ? '#121212' : '#ffffff',
+        paper: mode === 'dark' ? '#1e1e1e' : '#ffffff',
+      },
+    },
+    components: {
+      MuiButton: {
+        variants: [
+          {
+            props: {size: 'x-small'},
+            style: {
+              textTransform: 'none',
+              fontSize: '8px',
+              padding: '2px 8px',
+            },
           },
-        },
-      ],
-    }
-  }
-});
+        ],
+      },
+    },
+  });
+}
+
+const theme = createAppTheme('light');
 
 export default theme;

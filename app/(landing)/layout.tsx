@@ -5,7 +5,7 @@ import {formatDate} from '@util/date';
 import FloatingDiv from '@components/FloatingDiv/FloatingDiv';
 import Link from 'next/link';
 import Image from 'next/image';
-import {ClerkSessionContent} from '@components/SessionForms/ClerkSessionContent';
+import {HeaderAccountTools} from '@components/SessionForms/HeaderAccountTools';
 import {FooterContent} from '@components/Layout/FooterContent';
 import styles from './layout.module.css';
 import {SuspenseContent} from "@components/Suspense/SuspenseContent";
@@ -35,7 +35,7 @@ export default function RootLayout({
                     <Link href="/#volunteering">Volunteer</Link>
                     <Link href="/#faq">FAQ</Link>
                     <Link href="/apply#registration">Artists</Link>
-                    <ClerkSessionContent/>
+                    <HeaderAccountTools/>
                 </FloatingDiv>
                 <div className="relative overflow-hidden">
                     <Image

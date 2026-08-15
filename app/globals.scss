@@ -5,7 +5,8 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+:root,
+html[data-theme="light"] {
   --foreground-color: black; // rgb(29, 29, 29);
   --background-color: white;
   --link-color: #000042;
@@ -21,15 +22,17 @@
   font-size: 17px;
   font-family: "Alegreya Sans", sans-serif;
   font-weight: 400;
+  color-scheme: light;
 }
 
-/*@media (prefers-color-scheme: dark) {*/
-/*    :root {*/
-/*        --foreground-rgb: 255, 255, 255;*/
-/*        --background-start-rgb: 0, 0, 0;*/
-/*        --background-end-rgb: 0, 0, 0;*/
-/*    }*/
-/*}*/
+html[data-theme="dark"] {
+  --foreground-color: #f3f3f3;
+  --background-color: #121212;
+  --link-color: #c5d0ff;
+  --link-color-visited: #d4d4d4;
+  --gold-color: #eaac00;
+  color-scheme: dark;
+}
 
 /* Style invalid required inputs when in focus */
 input:required:focus:invalid {
@@ -125,6 +128,37 @@ a:active {
   a:visited {
     color: var(--link-color-visited-inverted);
   }
+}
+
+.appearance-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 15px;
+  color: var(--link-color-inverted);
+
+  select {
+    background: #111;
+    color: var(--link-color-inverted);
+    border: 1px solid #666;
+    border-radius: 4px;
+    padding: 0.2rem 0.4rem;
+    font-size: 15px;
+  }
+}
+
+.header-container .appearance-control,
+.footer-container .appearance-control {
+  color: var(--link-color-inverted);
+}
+
+.webmcp-hint {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 0 1rem 0.75rem;
+  font-size: 14px;
+  text-align: center;
+  color: var(--link-color-inverted);
 }
 
 @media screen and (min-width: 1200px) {

@@ -4,7 +4,8 @@ import { Analytics } from '@vercel/analytics/react';
 import './globals.scss';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import ThemeRegistry from '@components/Theme/ThemeRegistry';
-import { ClerkProvider } from '@clerk/nextjs';
+import { WebMcpRoot } from '@components/WebMCP/WebMcpRoot';
+import { APPEARANCE_BOOTSTRAP } from '@util/appearance';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://gordonstonartfair.com'),
@@ -29,18 +30,21 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const originTrial = process.env.NEXT_PUBLIC_WEBMCP_ORIGIN_TRIAL;
   return (
-    <ClerkProvider>
-      <html lang="en">
-        <body>
-          <ThemeRegistry>
-            {children}
-          </ThemeRegistry>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {originTrial ? <meta httpEquiv="origin-trial" content={originTrial} /> : null}
+      </head>
+      <body>
+        <script dangerouslySetInnerHTML={{__html: APPEARANCE_BOOTSTRAP}} />
+        <ThemeRegistry>
+          {children}
+          <WebMcpRoot />
           <Analytics />
           <SpeedInsights />
-        </body>
-      </html>
-    </ClerkProvider>
-
+        </ThemeRegistry>
+      </body>
+    </html>
   );
 }

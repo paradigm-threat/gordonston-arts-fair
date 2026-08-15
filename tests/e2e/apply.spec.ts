@@ -46,6 +46,14 @@ test.describe('Apply page', () => {
         }
     });
 
+    test('offers Sign in for returning artists and Register Now for new applicants', async ({page}) => {
+        await page.goto('/apply', {waitUntil: 'domcontentloaded'});
+
+        await expect(page.getByRole('heading', {name: /Sign in or register as an artist/i})).toBeVisible();
+        await expect(page.locator('article').getByRole('button', {name: 'Sign in'})).toBeVisible();
+        await expect(page.locator('article').getByRole('button', {name: 'Register Now'})).toBeVisible();
+    });
+
     test('links to terms from registration section', async ({page}) => {
         await page.goto('/apply#registration', {waitUntil: 'domcontentloaded'});
 

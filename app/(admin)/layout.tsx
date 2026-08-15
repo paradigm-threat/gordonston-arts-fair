@@ -2,7 +2,7 @@ import type {Metadata} from 'next';
 import React, {Suspense} from 'react';
 import Link from 'next/link';
 import FloatingDiv from '@components/FloatingDiv/FloatingDiv';
-import {ClerkSessionContent} from '@components/SessionForms/ClerkSessionContent';
+import {HeaderAccountTools} from '@components/SessionForms/HeaderAccountTools';
 import {FooterContent} from '@components/Layout/FooterContent';
 import {SuspenseContent} from "@components/Suspense/SuspenseContent";
 
@@ -27,7 +27,7 @@ export default function AdminLayout({
                 <FloatingDiv className="header-container">
                     <Link href="/">Home</Link>
                     <Link href="/user">User list</Link>
-                    <ClerkSessionContent/>
+                    <HeaderAccountTools/>
                 </FloatingDiv>
             </header>
             <article role="main" className="max-w-screen-lg flex flex-col z-[2] m-auto p-4">
