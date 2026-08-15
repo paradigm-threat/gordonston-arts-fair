@@ -51,11 +51,11 @@ export default function RootLayout({
                         <h2 className="text-white text-4xl md:text-6xl px-3 py-1 rounded-t-2xl bg-[#000A]">ART FAIR</h2>
                         <h3 className="text-white md:text-2xl font-bold px-3 py-1 rounded-3xl bg-[#000A]">{eventDateString}</h3>
                         <div className="pt-12 md:pt-12"/>
-                        <DateLocationApply className="bg-white font-bold md:rounded-3xl px-5 py-3"/>
+                        <DateLocationApply className="on-light-surface bg-white font-bold md:rounded-3xl px-5 py-3"/>
                     </div>
                 </div>
             </header>
-            <article role="main" className="max-w-screen-lg flex flex-col z-[2] m-auto p-4">
+            <article id="main-content" role="main" className="max-w-screen-lg flex flex-col z-[2] m-auto p-4">
                 <Suspense fallback={<SuspenseContent/>}>
                     {children}
                 </Suspense>

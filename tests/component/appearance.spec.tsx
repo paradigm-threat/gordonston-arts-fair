@@ -15,13 +15,13 @@ test.describe('AppearanceSelect', () => {
     test('offers System default, Light, and Dark', async ({mount, page}) => {
         await mount(<AppearanceSelect />);
 
-        const select = page.getByLabel('Appearance');
-        await expect(select).toBeVisible();
-        await expect(select).toHaveAttribute('data-hydrated', 'true');
-        await expect(select).toHaveValue('system');
-        await select.selectOption('dark');
+        const appearance = page.getByRole('group', {name: 'Appearance'});
+        await expect(appearance).toBeVisible();
+        await expect(appearance).toHaveAttribute('data-hydrated', 'true');
+        await expect(appearance.getByRole('button', {name: 'System default'})).toHaveAttribute('aria-pressed', 'true');
+        await appearance.getByRole('button', {name: 'Dark'}).click();
         await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-        await select.selectOption('light');
+        await appearance.getByRole('button', {name: 'Light'}).click();
         await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
     });
 });

@@ -47,7 +47,7 @@ export default async function PublicPaymentPage({
                         placeholder="artist@example.com"
                         className="flex-1 rounded border px-3 py-2"
                     />
-                    <button type="submit" className="rounded bg-[color:var(--gold-color)] px-4 py-2 text-black">
+                    <button type="submit" className="gold-button rounded px-4 py-2">
                         Continue
                     </button>
                 </form>

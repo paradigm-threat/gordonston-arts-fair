@@ -1,6 +1,7 @@
 'use client';
 
 import React, {useEffect, useState} from 'react';
+import {MdComputer, MdDarkMode, MdLightMode} from 'react-icons/md';
 import {
   APPEARANCE_COOKIE,
   APPEARANCE_OPTIONS,
@@ -10,6 +11,12 @@ import {
   type AppearancePreference,
   type ResolvedTheme,
 } from '@util/appearance';
+
+const APPEARANCE_ICONS: Record<AppearancePreference, React.ComponentType<{size?: number}>> = {
+  system: MdComputer,
+  light: MdLightMode,
+  dark: MdDarkMode,
+};
 
 const APPEARANCE_CHANGE_EVENT = 'gaf-appearance';
 
@@ -71,26 +78,29 @@ export function AppearanceSelect() {
   }, []);
 
   return (
-    <label className="appearance-control">
-      Appearance
-      <select
-        aria-label="Appearance"
-        name="appearance"
-        data-hydrated={hydrated ? 'true' : 'false'}
-        value={preference}
-        onChange={(event) => {
-          const next = event.target.value;
-          if (!isAppearancePreference(next)) return;
-          setPreference(next);
-          persistAppearancePreference(next);
-        }}
-      >
-        {APPEARANCE_OPTIONS.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </label>
+    <div
+      className="appearance-control"
+      role="group"
+      aria-label="Appearance"
+      data-hydrated={hydrated ? 'true' : 'false'}
+    >
+      {APPEARANCE_OPTIONS.map((option) => {
+        const Icon = APPEARANCE_ICONS[option.value];
+        return (
+          <button
+            key={option.value}
+            type="button"
+            aria-label={option.label}
+            aria-pressed={preference === option.value}
+            onClick={() => {
+              setPreference(option.value);
+              persistAppearancePreference(option.value);
+            }}
+          >
+            <Icon size={18} aria-hidden />
+          </button>
+        );
+      })}
+    </div>
   );
 }

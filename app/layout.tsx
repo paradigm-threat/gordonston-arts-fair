@@ -38,6 +38,7 @@ export default function RootLayout({
       </head>
       <body>
         <script dangerouslySetInnerHTML={{__html: APPEARANCE_BOOTSTRAP}} />
+        <a className="skip-link" href="#main-content">Skip to main content</a>
         <ThemeRegistry>
           {children}
           <WebMcpRoot />

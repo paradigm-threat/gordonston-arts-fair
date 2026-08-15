@@ -3,7 +3,7 @@
 import {SignInButton, SignUpButton} from '@clerk/nextjs';
 import React from 'react';
 
-const buttonClassName = 'rounded-md bg-blue-700 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-400';
+const buttonClassName = 'rounded-md bg-blue-700 px-4 py-2 text-base text-white transition-colors hover:bg-blue-800';
 
 export function ApplyAuthButtons() {
   return (

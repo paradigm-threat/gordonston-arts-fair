@@ -1,4 +1,5 @@
 import {test, expect} from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 import {isRegistrationCheckoutAllowed} from '../../util/date';
 
 test.describe('Checkout API', () => {
@@ -53,5 +54,12 @@ test.describe('Public payment page', () => {
         await expect(page.getByRole('heading', {name: 'Artist Payment'})).toBeVisible();
         await expect(page.getByPlaceholder('artist@example.com')).toBeVisible();
         await expect(page.getByRole('button', {name: 'Continue'})).toBeVisible();
+    });
+
+    test('has no critical accessibility violations', async ({page}) => {
+        await page.goto('/payment', {waitUntil: 'domcontentloaded'});
+
+        const results = await new AxeBuilder({page}).analyze();
+        expect(results.violations).toEqual([]);
     });
 });

@@ -27,13 +27,29 @@ test.describe('Landing page', () => {
         await expect(headerStatus.first()).toBeVisible();
     });
 
+    test('can skip to main content', async ({page}) => {
+        await page.goto('/', {waitUntil: 'domcontentloaded'});
+        await page.keyboard.press('Tab');
+        await expect(page.getByRole('link', {name: 'Skip to main content'})).toBeFocused();
+        await page.keyboard.press('Enter');
+        await expect(page.locator('#main-content')).toBeVisible();
+    });
+
     test('has no critical accessibility violations', async ({page}) => {
         await page.goto('/', {waitUntil: 'domcontentloaded'});
 
-        const results = await new AxeBuilder({page})
-            .disableRules(['color-contrast'])
-            .analyze();
+        const results = await new AxeBuilder({page}).analyze();
+        expect(results.violations).toEqual([]);
+    });
 
+    test('has no critical accessibility violations in dark mode', async ({page}) => {
+        await page.addInitScript(() => {
+            localStorage.setItem('gaf-appearance', 'dark');
+        });
+        await page.goto('/', {waitUntil: 'domcontentloaded'});
+        await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+
+        const results = await new AxeBuilder({page}).analyze();
         expect(results.violations).toEqual([]);
     });
 });

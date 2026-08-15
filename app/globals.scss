@@ -85,11 +85,17 @@ a:active {
   justify-content: space-evenly;
   background-color: #000000;
   color: var(--foreground-inverted-color) !important;
+  font-size: 17px;
+  font-family: "Alegreya Sans", sans-serif;
+  font-weight: 400;
+
+  span, a, button {
+    font-size: inherit;
+    font-family: inherit;
+    font-weight: inherit;
+  }
 
   span, a {
-    font-size: 17px;
-    font-family: "Alegreya Sans", sans-serif;
-    font-weight: 400;
     color: var(--link-color-inverted) !important;
   }
 
@@ -133,17 +139,40 @@ a:active {
 .appearance-control {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  font-size: 15px;
-  color: var(--link-color-inverted);
+  gap: 0.15rem;
+  color: inherit;
+  font: inherit;
 
-  select {
-    background: #111;
-    color: var(--link-color-inverted);
-    border: 1px solid #666;
-    border-radius: 4px;
-    padding: 0.2rem 0.4rem;
-    font-size: 15px;
+  button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    line-height: 1;
+    min-width: 44px;
+    min-height: 44px;
+    opacity: 0.85;
+
+    &[aria-pressed="true"] {
+      opacity: 1;
+    }
+
+    &:hover,
+    &:focus-visible {
+      opacity: 1;
+      color: var(--link-color-hover);
+    }
+
+    &:focus-visible {
+      outline: 2px solid currentColor;
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
   }
 }
 
@@ -159,6 +188,48 @@ a:active {
   font-size: 14px;
   text-align: center;
   color: var(--link-color-inverted);
+}
+
+.skip-link {
+  position: absolute;
+  left: 0.75rem;
+  top: -100%;
+  z-index: 10000;
+  padding: 0.5rem 1rem;
+  background: #000;
+  color: #fff;
+  font-size: 17px;
+  text-decoration: underline;
+}
+
+.skip-link:focus {
+  top: 0.5rem;
+}
+
+.on-light-surface {
+  color: #121212;
+
+  a:link {
+    color: #000042;
+  }
+
+  a:visited {
+    color: #272727;
+  }
+
+  a:hover,
+  a:focus-visible {
+    color: #0013ff;
+  }
+}
+
+.gold-button {
+  background-color: var(--gold-color);
+  color: #ffffff;
+}
+
+html[data-theme="dark"] .gold-button {
+  color: #121212;
 }
 
 @media screen and (min-width: 1200px) {
@@ -186,7 +257,7 @@ ul {
 }
 
 p {
-  text-align: justify;
+  text-align: left;
   font-style: normal;
   margin: 10px 0;
 }
@@ -219,12 +290,10 @@ h2 {
 
 /* Focus styles for keyboard navigation */
 a:focus-visible {
-  display: block;
   outline: 2px solid var(--link-color-hover);
   outline-offset: 2px;
   border-radius: 2px;
   text-decoration: underline;
-  transition: outline-offset 0.2s ease;
 }
 
 /* Special handling for links in header/footer with inverted colors */

@@ -1,4 +1,5 @@
 import {test, expect} from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 
 test.describe('Apply page', () => {
     test('shows registration information', async ({page}) => {
@@ -58,5 +59,12 @@ test.describe('Apply page', () => {
         await page.goto('/apply#registration', {waitUntil: 'domcontentloaded'});
 
         await expect(page.locator('a[href="/terms"]').first()).toBeVisible();
+    });
+
+    test('has no critical accessibility violations', async ({page}) => {
+        await page.goto('/apply', {waitUntil: 'domcontentloaded'});
+
+        const results = await new AxeBuilder({page}).analyze();
+        expect(results.violations).toEqual([]);
     });
 });
