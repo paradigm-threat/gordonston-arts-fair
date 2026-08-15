@@ -33,7 +33,10 @@ export default function ThemeRegistry({children}: {children: React.ReactNode}) {
   return (
     <AppRouterCacheProvider>
       <ThemeProvider theme={theme}>
-        <ClerkProvider appearance={appearance}>
+        <ClerkProvider
+          publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+          appearance={appearance}
+        >
           {children}
         </ClerkProvider>
       </ThemeProvider>
