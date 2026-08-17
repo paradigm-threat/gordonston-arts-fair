@@ -22,7 +22,7 @@ test.describe('color contrast', () => {
     test('gold headings and gold buttons pass WCAG contrast in dark mode', async ({mount, page}) => {
         await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'dark'));
         await mount(
-            <main style={{background: '#121212', color: '#f3f3f3', padding: '1.5rem'}}>
+            <main style={{background: '#252422', color: '#f4f0e8', padding: '1.5rem'}}>
                 <h1 className="m-auto text-[color:var(--gold-color)] italic">Manage an Artist</h1>
                 <EditProfileLink href="/user/1/edit" label="Edit profile" />
                 <button type="button" className="gold-button rounded px-4 py-2">Continue</button>

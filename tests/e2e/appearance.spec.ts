@@ -26,8 +26,8 @@ test.describe('Appearance', () => {
         await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
 
         const header = page.locator('.header-container');
-        await expect(header).toHaveCSS('background-color', 'rgb(18, 18, 18)');
-        await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(18, 18, 18)');
+        await expect(header).toHaveCSS('background-color', 'rgb(37, 36, 34)');
+        await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(37, 36, 34)');
 
         const spacing = await page.evaluate(() => {
             const faq = [...document.querySelectorAll('.header-nav a')]

@@ -6,7 +6,9 @@ import {
   APPEARANCE_COOKIE,
   APPEARANCE_OPTIONS,
   APPEARANCE_STORAGE_KEY,
+  DEFAULT_APPEARANCE,
   isAppearancePreference,
+  prefersDarkFromMedia,
   resolveAppearance,
   type AppearancePreference,
   type ResolvedTheme,
@@ -27,11 +29,18 @@ function readStoredPreference(): AppearancePreference {
   } catch {
     // Ignore private-mode / blocked storage.
   }
-  return 'system';
+  return DEFAULT_APPEARANCE;
 }
 
 function systemPrefersDark() {
-  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  try {
+    return prefersDarkFromMedia(
+      window.matchMedia('(prefers-color-scheme: dark)').matches,
+      window.matchMedia('(prefers-color-scheme: light)').matches,
+    );
+  } catch {
+    return false;
+  }
 }
 
 export function applyResolvedTheme(theme: ResolvedTheme) {
@@ -55,18 +64,25 @@ export function subscribeToAppearance(onChange: (theme: ResolvedTheme) => void) 
   const emit = () => {
     onChange(resolveAppearance(readStoredPreference(), systemPrefersDark()));
   };
-  const media = window.matchMedia('(prefers-color-scheme: dark)');
-  media.addEventListener('change', emit);
   window.addEventListener(APPEARANCE_CHANGE_EVENT, emit);
   emit();
+
+  let media: MediaQueryList | undefined;
+  try {
+    media = window.matchMedia('(prefers-color-scheme: dark)');
+    media.addEventListener('change', emit);
+  } catch {
+    // Ignore environments without color-scheme detection.
+  }
+
   return () => {
-    media.removeEventListener('change', emit);
+    media?.removeEventListener('change', emit);
     window.removeEventListener(APPEARANCE_CHANGE_EVENT, emit);
   };
 }
 
 export function AppearanceSelect() {
-  const [preference, setPreference] = useState<AppearancePreference>('system');
+  const [preference, setPreference] = useState<AppearancePreference>(DEFAULT_APPEARANCE);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {

@@ -5,15 +5,24 @@ import {useEffect, useMemo, useState} from 'react';
 import {ThemeProvider} from '@mui/material/styles';
 import {AppRouterCacheProvider} from '@mui/material-nextjs/v13-appRouter';
 import {ClerkProvider} from '@clerk/nextjs';
-import {createAppTheme, GOLD_DARK, GOLD_LIGHT} from './theme';
+import {
+  createAppTheme,
+  DARK_INPUT,
+  DARK_PAGE,
+  DARK_PAPER,
+  DARK_TEXT,
+  DARK_TEXT_MUTED,
+  GOLD_DARK,
+  GOLD_LIGHT,
+} from './theme';
 import {subscribeToAppearance} from './AppearanceSelect';
 import type {ResolvedTheme} from '@util/appearance';
 
 function clerkAppearance(mode: ResolvedTheme) {
   const dark = mode === 'dark';
-  const text = dark ? '#f3f3f3' : '#121212';
-  const muted = dark ? '#d8d8d8' : '#333333';
-  const background = dark ? '#1e1e1e' : '#ffffff';
+  const text = dark ? DARK_TEXT : '#121212';
+  const muted = dark ? DARK_TEXT_MUTED : '#333333';
+  const background = dark ? DARK_PAPER : '#ffffff';
   return {
     variables: {
       colorBackground: background,
@@ -21,7 +30,7 @@ function clerkAppearance(mode: ResolvedTheme) {
       colorTextSecondary: muted,
       colorNeutral: text,
       colorPrimary: dark ? GOLD_DARK : GOLD_LIGHT,
-      colorInputBackground: dark ? '#121212' : '#ffffff',
+      colorInputBackground: dark ? DARK_INPUT : '#ffffff',
       colorInputText: text,
     },
     elements: {
@@ -48,7 +57,7 @@ function clerkAppearance(mode: ResolvedTheme) {
         color: text,
       },
       userButtonPopoverFooter: {
-        backgroundColor: dark ? '#121212' : '#f4f4f4',
+        backgroundColor: dark ? DARK_PAGE : '#f4f4f4',
       },
     },
   };

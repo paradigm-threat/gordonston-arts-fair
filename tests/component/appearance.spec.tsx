@@ -1,6 +1,6 @@
 import {test, expect} from '@playwright/experimental-ct-react';
 import {AppearanceSelect} from '@components/Theme/AppearanceSelect';
-import {resolveAppearance} from '@util/appearance';
+import {prefersDarkFromMedia, resolveAppearance} from '@util/appearance';
 
 test.describe('appearance helpers', () => {
     test('system follows the OS preference', () => {
@@ -8,6 +8,13 @@ test.describe('appearance helpers', () => {
         expect(resolveAppearance('system', true)).toBe('dark');
         expect(resolveAppearance('light', true)).toBe('light');
         expect(resolveAppearance('dark', false)).toBe('dark');
+    });
+
+    test('system stays light when the OS preference is missing', () => {
+        expect(prefersDarkFromMedia(false, false)).toBe(false);
+        expect(prefersDarkFromMedia(true, false)).toBe(true);
+        expect(prefersDarkFromMedia(false, true)).toBe(false);
+        expect(prefersDarkFromMedia(true, true)).toBe(false);
     });
 });
 

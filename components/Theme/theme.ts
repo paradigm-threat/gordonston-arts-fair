@@ -11,7 +11,12 @@ declare module '@mui/material/Button' {
 export const GOLD_LIGHT = '#7a5600';
 export const GOLD_DARK = '#8ec8ff';
 export const GOLD_CONTRAST_LIGHT = '#ffffff';
-export const GOLD_CONTRAST_DARK = '#121212';
+export const GOLD_CONTRAST_DARK = '#1a1916';
+export const DARK_PAGE = '#252422';
+export const DARK_PAPER = '#32302c';
+export const DARK_INPUT = '#2a2824';
+export const DARK_TEXT = '#f4f0e8';
+export const DARK_TEXT_MUTED = '#d5cfc4';
 
 const goldLight = GOLD_LIGHT;
 const goldDark = GOLD_DARK;
@@ -30,12 +35,12 @@ export function createAppTheme(mode: PaletteMode) {
         contrastText: dark ? GOLD_CONTRAST_DARK : GOLD_CONTRAST_LIGHT,
       },
       background: {
-        default: dark ? '#121212' : '#ffffff',
-        paper: dark ? '#1e1e1e' : '#ffffff',
+        default: dark ? DARK_PAGE : '#ffffff',
+        paper: dark ? DARK_PAPER : '#ffffff',
       },
       text: {
-        primary: dark ? '#f3f3f3' : '#121212',
-        secondary: dark ? '#d8d8d8' : '#333333',
+        primary: dark ? DARK_TEXT : '#121212',
+        secondary: dark ? DARK_TEXT_MUTED : '#333333',
       },
     },
     typography: {
@@ -71,6 +76,7 @@ export function createAppTheme(mode: PaletteMode) {
         styleOverrides: {
           root: {
             minHeight: 48,
+            ...(dark ? {backgroundColor: DARK_INPUT} : {}),
           },
         },
       },
