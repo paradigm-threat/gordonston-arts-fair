@@ -26,6 +26,14 @@ export function ArtistStepper({
   let returnMessage: ['info' | 'success', string] = ['info', message];
   let redirectURL: React.JSX.Element = <Link href="/profile/edit">Click here to return to profile editor</Link>;
   const registrationPhase = getRegistrationPhase(now);
+  const registrationFee = process.env.NEXT_PUBLIC_REGISTRATION_FEE || '15';
+  const pastApply = status === 'submitted'
+    || status === 'approved'
+    || status === 'standby'
+    || status === 'declined'
+    || status === 'paid';
+  const showBooth = status === 'approved' || status === 'paid';
+  const showComplete = status === 'paid';
 
   if (formFilled) {
     activeStep = 1;
@@ -52,6 +60,16 @@ export function ArtistStepper({
     returnMessage = ['info', 'Please wait for approval from the Gordonston Arts Fair Administrators.'];
     redirectURL = <Link href="/profile">Click here to return to profile</Link>;
   }
+  if (status === 'standby') {
+    activeStep = 3;
+    returnMessage = ['info', 'Your artist profile is on standby. Please wait for approval.'];
+    redirectURL = <Link href="/profile">Click here to return to profile</Link>;
+  }
+  if (status === 'declined') {
+    activeStep = 3;
+    returnMessage = ['info', 'Your artist profile has been declined. Please contact us for more information.'];
+    redirectURL = <Link href="/profile">Click here to return to profile</Link>;
+  }
   if (status === 'approved') {
     activeStep = 4;
     returnMessage = ['info', 'Please pay the artist booth fee to complete your artist registration.'];
@@ -68,30 +86,36 @@ export function ArtistStepper({
       <Stepper activeStep={activeStep} sx={{ padding: '1rem' }}>
         <Step>
           <Link href="/profile/edit">
-            <StepLabel>Artist Profile</StepLabel>
+            <StepLabel>Profile</StepLabel>
           </Link>
         </Step>
         <Step>
           <Link href="/profile/upload">
-            <StepLabel>Upload Images</StepLabel>
+            <StepLabel>Photos</StepLabel>
           </Link>
         </Step>
         <Step>
           <Link href="/payment/registration">
-            <StepLabel>Registration Fee</StepLabel>
+            <StepLabel>{`Pay $${registrationFee}`}</StepLabel>
           </Link>
         </Step>
-        <Step>
-          <StepLabel>Approval</StepLabel>
-        </Step>
-        <Step>
-          <Link href="/payment/booth">
-            <StepLabel>Booth Fee</StepLabel>
-          </Link>
-        </Step>
-        <Step>
-          <StepLabel>Artist Registration Complete</StepLabel>
-        </Step>
+        {pastApply && (
+          <Step>
+            <StepLabel>Approval</StepLabel>
+          </Step>
+        )}
+        {showBooth && (
+          <Step>
+            <Link href="/payment/booth">
+              <StepLabel>Booth Fee</StepLabel>
+            </Link>
+          </Step>
+        )}
+        {showComplete && (
+          <Step>
+            <StepLabel>Complete</StepLabel>
+          </Step>
+        )}
       </Stepper>
 
       {showAlert && (

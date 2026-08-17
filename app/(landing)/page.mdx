@@ -1,5 +1,6 @@
 import {formatDate} from "../../util/date";
 import {WhenRegistrationPhase} from "@components/Info/WhenRegistrationPhase";
+import {FeaturedArtworkSection} from "@components/Info/FeaturedArtworkSection";
 
 export const eventDate = new Date(process.env.NEXT_PUBLIC_EVENT_DATE);
 export const eventYear = eventDate.getFullYear();
@@ -33,6 +34,8 @@ export const boothFee = process.env.NEXT_PUBLIC_BOOTH_FEE;
 You are warmly welcomed to our annual fine arts and crafts fair, hosted in historic Gordonston's Juliette Gordon Low
 Park. In addition to juried local and regional artists and artisans, we will hold a gently used book sale.
 There will be food trucks, live music, and a supervised children's crafts area.
+
+<FeaturedArtworkSection />
 
 # Artist Application for the {eventYear} Gordonston Art Fair
 

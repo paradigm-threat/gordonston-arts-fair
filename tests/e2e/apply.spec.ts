@@ -1,5 +1,5 @@
 import {test, expect} from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
+import {expectNoA11yViolations, expectNoContrastViolations} from '../helpers/a11y';
 
 test.describe('Apply page', () => {
     test('shows registration information', async ({page}) => {
@@ -61,10 +61,9 @@ test.describe('Apply page', () => {
         await expect(page.locator('a[href="/terms"]').first()).toBeVisible();
     });
 
-    test('has no critical accessibility violations', async ({page}) => {
+    test('has no WCAG A/AA violations, including contrast', async ({page}) => {
         await page.goto('/apply', {waitUntil: 'domcontentloaded'});
-
-        const results = await new AxeBuilder({page}).analyze();
-        expect(results.violations).toEqual([]);
+        await expectNoContrastViolations(page);
+        await expectNoA11yViolations(page);
     });
 });

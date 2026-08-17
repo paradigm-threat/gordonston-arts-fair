@@ -67,7 +67,7 @@ export default function SendEmailAdmin({
     else if (sentSuccessful) buttonLabel = 'Sent Successfully';
 
     return (
-        <Box className="flex flex-col min-w-full m-auto p-6 rounded-2xl border-2 border-[#ccca]">
+        <Box className="admin-panel">
             <form
                 method="post"
                 ref={formRef}
@@ -137,7 +137,7 @@ export default function SendEmailAdmin({
                 <TableContainer component={Paper}>
                     <Table>
                         <TableHead>
-                            <TableRow className="bg-blue-700 [&_th]:bold [&_th]:text-white [&_th]:px-4 [&_th]:py-2">
+                            <TableRow className="admin-table-head">
                                 <TableCell colSpan={2}>Send batched emails using templates</TableCell>
                             </TableRow>
                         </TableHead>

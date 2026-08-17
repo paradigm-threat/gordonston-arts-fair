@@ -15,6 +15,8 @@ import {HttpError, UnauthorizedError} from '@util/exception/httpError';
 import {currentUser} from '@clerk/nextjs/server';
 import {getEmailInfoServer, sendMail} from '@util/emailActions';
 import {deleteUploadRecord} from '@util/uploadCleanup';
+import {displayUploadTitle} from '@util/format';
+import {describeConvertedFileError, sanitizeUploadFilename} from '@util/uploadValidation';
 import {
     ArtistApprovedTemplate,
     ArtistDeclinedTemplate,
@@ -168,42 +170,55 @@ export async function fetchProfileStatus(userProfile: UserModel) {
     };
 }
 
-export async function uploadFile(file: File) {
-    const userProfile = await fetchProfileFromSession();
+export async function uploadFile(userID: number, file: File) {
+    const userProfile = await assertOwnerOrAdmin(userID);
+    await ensureDatabase();
+
+    const convertedError = describeConvertedFileError(file);
+    if (convertedError) throw HttpError.BadRequest(convertedError);
 
     const imagePath = `uploads/${userProfile.id}`;
     const imageDimensions = await imageDimensionsFromStream(file.stream());
-    if (!imageDimensions) throw new Error('Failed to get image dimensions');
+    if (!imageDimensions) {
+        throw HttpError.BadRequest('Could not read that image. Please try a JPEG or PNG.');
+    }
     const {width, height} = imageDimensions;
-    // eslint-disable-next-line no-console
-    const fileName = `${width}-${height}/${file.name}`;
+    const safeName = sanitizeUploadFilename(file.name);
+    const fileName = `${width}-${height}/${Date.now()}-${safeName}`;
 
-    // 1) Create DB record first with empty URL to ensure we never lose track of an attempted upload
     const created = await UserFileUploadModel.create({
         user_id: userProfile.id,
-        title: file.name,
+        title: displayUploadTitle(safeName),
         description: '',
         width,
         height,
         url: '',
         feature: false,
+        featureApproved: false,
+        featureDeclined: false,
     });
 
     console.log('Preparing to store file: ', fileName, width, height, 'db id=', created.id);
 
     try {
-        // 2) Upload the blob
+        const contentType = file.type?.startsWith('image/') ? file.type : 'image/jpeg';
         const putResult = await put(`${imagePath}/${fileName}`, file, {
             access: 'public',
-            contentType: file.type,
+            contentType,
             allowOverwrite: true
         });
-        // 3) Update the DB record with the URL
         await created.update({ url: putResult.url });
         console.log('Upload succeeded and DB updated for id=', created.id);
     } catch (err) {
-        // Leave the record with empty url to signal incomplete upload
         console.error('Upload failed for db id=', created.id, err);
+        try {
+            await UserFileUploadModel.destroy({
+                where: {id: created.id, user_id: userProfile.id},
+            });
+        } catch (cleanupError) {
+            console.error('Could not remove incomplete upload row', created.id, cleanupError);
+        }
+        throw new Error('Upload failed. Please try again.');
     }
 
     const {
@@ -211,7 +226,7 @@ export async function uploadFile(file: File) {
     } = await fetchProfileStatus(userProfile);
 
     return {
-        message: 'File upload processed. If you do not see the image, please try re-uploading.',
+        message: 'File uploaded successfully.',
         result: profileStatus,
     };
 }
@@ -253,14 +268,44 @@ export async function updateFile(userID: number, updatedFile: InferAttributes<Us
         throw HttpError.Forbidden('You are not authorized to update this file');
     }
 
+    const requestedFeature = Boolean(updatedFile.feature);
+    const wasRequested = Boolean(fileUpload.feature);
+    const wasApproved = Boolean(fileUpload.featureApproved);
+    if (requestedFeature && !wasRequested) {
+        const {fetchTransactions} = await import('@util/transActions');
+        const {canRequestWebsiteFeature} = await import('@util/payments');
+        const transactions = await fetchTransactions(userProfile.id);
+        if (!canRequestWebsiteFeature(transactions, userProfile.status)) {
+            throw HttpError.Forbidden(
+                'Home page featuring is for artists who exhibited at last year\'s Art Fair.'
+            );
+        }
+    }
+
+    await fileUpload.update({
+        title: updatedFile.title,
+        description: updatedFile.description,
+        feature: requestedFeature,
+        featureApproved: requestedFeature && wasRequested && wasApproved,
+        featureDeclined: requestedFeature
+            ? false
+            : (wasRequested ? false : Boolean(fileUpload.featureDeclined)),
+    });
+
     const {
         status: profileStatus,
     } = await fetchProfileStatus(userProfile);
 
+    let message = 'File description updated successfully';
+    if (!requestedFeature && wasRequested) {
+        message = 'This photo will not appear on the home page.';
+    } else if (requestedFeature && !wasApproved) {
+        message = 'Your request to feature this photo is saved. It will not appear on the home page until we review it.';
+    }
+
     return {
-        message: 'File description updated successfully',
+        message,
         result: profileStatus,
-        updateAction: fileUpload.update({ ...updatedFile, user_id: userProfile.id })
     };
 }
 

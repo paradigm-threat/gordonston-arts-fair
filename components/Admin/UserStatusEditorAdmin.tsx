@@ -49,7 +49,7 @@ export default function UserStatusEditorAdmin({
   }
 
   return (
-    <Box className="flex flex-col min-w-full m-auto p-6 rounded-2xl border-2 border-[#ccca]">
+    <Box className="admin-panel">
       <form
         ref={formRef}
         method="POST"
@@ -63,7 +63,7 @@ export default function UserStatusEditorAdmin({
         <TableContainer component={Paper}>
           <Table>
             <TableHead>
-              <TableRow className="bg-blue-700 [&_th]:bold [&_th]:text-white [&_th]:px-4 [&_th]:py-2">
+              <TableRow className="admin-table-head">
                 <TableCell colSpan={2}>
                   {`Manage ${USER_LABEL} Status`}
                 </TableCell>

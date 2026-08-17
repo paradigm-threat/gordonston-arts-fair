@@ -21,19 +21,29 @@ export default function SelectField({
   onBlur,
   value,
   defaultValue,
+  id,
+  name,
+  label,
   ...props
 }: SelectFieldProps) {
-  const labelName = `${props.label}-label`;
+  const fieldId = String(id || name || label || 'select')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+  const labelId = `${fieldId}-label`;
 
   return (
     <FormControl
       required={required}
       fullWidth
     >
-      <InputLabel id={labelName}>{props.label}</InputLabel>
+      <InputLabel id={labelId}>{label}</InputLabel>
       <MUISelect
+        id={fieldId}
+        name={name}
+        label={label}
+        labelId={labelId}
         value={value || defaultValue} // Prevent usage of defaultValue
-        labelId={labelName}
         inputRef={(inputRef) => {
           if (inputRef && scrollIntoView) {
             const scrollOptions: ScrollIntoViewOptions = {

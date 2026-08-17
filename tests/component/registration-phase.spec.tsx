@@ -1,6 +1,7 @@
 import {test, expect} from '@playwright/experimental-ct-react';
 import {
     getApplicationStatusText,
+    getLastFairYear,
     getRegistrationPhase,
     isRegistrationCheckoutAllowed,
 } from '@util/date';
@@ -14,6 +15,7 @@ import {
     hasPaidBoothThisCycle,
     hasPaidRegistrationThisCycle,
     hasPriorCycleRegistrationPayment,
+    canRequestWebsiteFeature,
 } from '@util/payments';
 
 const ORIGINAL_ENV = {
@@ -58,6 +60,7 @@ test.describe('registration phase helpers', () => {
         setRegistrationWindow('2020-01-01 12:00:00', '2099-10-01 12:00:00');
         expect(isRegistrationCheckoutAllowed(new Date('2019-12-01T12:00:00'))).toBe(false);
         expect(isRegistrationCheckoutAllowed(new Date('2026-08-12T12:00:00'))).toBe(true);
+        expect(getLastFairYear()).toBe(2026);
     });
 });
 
@@ -176,5 +179,30 @@ test.describe('fee cycle helpers', () => {
 
         expect(hasPaidBoothThisCycle(lastYearBooth, 'approved')).toBe(false);
         expect(hasPaidBoothThisCycle(lastYearBooth, 'paid')).toBe(true);
+    });
+
+    test('counts last-year exhibitors for homepage feature requests', async () => {
+        const lastYearReg = [{
+            type: 'charge.succeeded' as const,
+            amount: '15.00',
+            createdAt: '2025-09-04T16:57:18.886Z',
+        }];
+        const lastYearBooth = [{
+            type: 'charge.succeeded' as const,
+            amount: '85.00',
+            createdAt: '2025-12-30T19:53:09.536Z',
+        }];
+        const thisCycleOnly = [{
+            type: 'charge.succeeded' as const,
+            amount: '15.00',
+            createdAt: '2026-08-15T13:16:16.279Z',
+        }];
+
+        expect(canRequestWebsiteFeature([], 'imported')).toBe(true);
+        expect(canRequestWebsiteFeature(lastYearReg, 'registered')).toBe(true);
+        expect(canRequestWebsiteFeature(lastYearBooth, 'registered')).toBe(true);
+        expect(canRequestWebsiteFeature(thisCycleOnly, 'registered')).toBe(false);
+        expect(canRequestWebsiteFeature(thisCycleOnly, 'submitted')).toBe(false);
+        expect(canRequestWebsiteFeature([], 'paid')).toBe(false);
     });
 });

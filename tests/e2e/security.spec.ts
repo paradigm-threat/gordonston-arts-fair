@@ -36,4 +36,12 @@ test.describe('Auth guards', () => {
 
         await expect(page).toHaveURL(/sign-in|user/);
     });
+
+    test('featured photos admin requires sign-in', async ({page}) => {
+        await page.goto('/user/featured');
+
+        await expect(page).toHaveURL(/sign-in|featured/);
+        const body = await page.locator('body').innerText();
+        expect(/Unauthorized|Sign in|Featured photos/i.test(body)).toBe(true);
+    });
 });

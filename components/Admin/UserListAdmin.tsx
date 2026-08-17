@@ -20,6 +20,7 @@ import {
     TableContainer,
     TableHead,
     TableRow,
+    TableSortLabel,
     TextField,
     Typography
 } from '@mui/material';
@@ -27,12 +28,12 @@ import type {AlertColor} from '@mui/material/Alert';
 import Link from 'next/link';
 import {getFullName, getStatusName} from '@util/profile';
 import {MailResult, profileStatuses, UserSearchParams, UserStatus} from '@types';
-import {snakeCaseToTitleCase} from '@util/format';
 import {IUserSearchResponse} from '@util/userActions';
 import {PaginationLinks} from '@components/Pagination/PaginationLinks';
 import styles from './UserListAdmin.module.css';
-import {exportToExcel} from "@util/export";
-import {BookType} from "xlsx";
+import {exportToExcel} from '@util/export';
+import {BookType} from 'xlsx';
+import {AdminSelect} from '@components/Admin/AdminSelect';
 
 import Mail from 'nodemailer/lib/mailer';
 import SendEmailAdmin from '@components/Admin/SendEmailAdmin';
@@ -46,17 +47,29 @@ interface AdminUserListProps {
     updateUsersStatusBulk?(userIDs: number[], newStatus: UserStatus, sendTemplate?: boolean): Promise<{
         message: string
     }>,
-
-    // totalCount: number,
 }
 
 const USER_LABEL = process.env.NEXT_PUBLIC_USER_LABEL || 'User';
 
+const SORT_OPTIONS = [
+    {value: 'last_name', label: 'Last name'},
+    {value: 'email', label: 'Email'},
+    {value: 'createdAt', label: 'Created'},
+    {value: 'updatedAt', label: 'Updated'},
+    {value: 'status', label: 'Status'},
+];
+
+const LIMIT_OPTIONS = [
+    {value: '25', label: '25 per page'},
+    {value: '50', label: '50 per page'},
+    {value: '100', label: '100 per page'},
+];
+
 export default function UserListAdmin({
-                                          listUsersAsAdmin,
-                                          sendMail,
-                                          updateUsersStatusBulk,
-                                      }: AdminUserListProps) {
+    listUsersAsAdmin,
+    sendMail,
+    updateUsersStatusBulk,
+}: AdminUserListProps) {
     const sendMailSafe = sendMail || (async () => ({status: 'error', message: 'sendMail not provided' as const}));
     const updateUsersStatusBulkSafe = updateUsersStatusBulk || (async () => ({message: 'updateUsersStatusBulk not provided'}));
     const [status, setStatus] = useState<'ready' | 'loading'>('loading');
@@ -80,16 +93,16 @@ export default function UserListAdmin({
     const [actionsAnchorEl, setActionsAnchorEl] = useState<null | HTMLElement>(null);
     const [emailDialogOpen, setEmailDialogOpen] = useState(false);
     const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+    const [selectAllPending, setSelectAllPending] = useState(false);
 
     const allVisibleSelected = useMemo(() => {
         if (userList.length === 0) return false;
-        return userList.every(u => selectedIds.has(u.id));
+        return userList.every((user) => selectedIds.has(user.id));
     }, [userList, selectedIds]);
 
     const someVisibleSelected = useMemo(() => {
-        return userList.some(u => selectedIds.has(u.id)) && !allVisibleSelected;
+        return userList.some((user) => selectedIds.has(user.id)) && !allVisibleSelected;
     }, [userList, selectedIds, allVisibleSelected]);
-    const [selectAllPending, setSelectAllPending] = useState(false);
 
     useEffect(() => {
         setMessage(['info', 'Fetching user logs...']);
@@ -97,7 +110,7 @@ export default function UserListAdmin({
             listUsersAsAdmin(args).then((resp) => {
                 setData(resp);
                 if (selectAllPending) {
-                    setSelectedIds(new Set(resp.userList.map(u => u.id)));
+                    setSelectedIds(new Set(resp.userList.map((user) => user.id)));
                     setSelectAllPending(false);
                 }
             }).then(() => setStatus('ready'));
@@ -112,13 +125,31 @@ export default function UserListAdmin({
             ...args,
             limit: 99999
         });
-        exportToExcel(exportedData.userList, 'export.' + bookType, bookType);
+        exportToExcel(exportedData.userList, `export.${bookType}`, bookType);
     }
 
+    function toggleSort(field: string) {
+        setArgs({
+            ...args,
+            orderBy: field,
+            order: args.orderBy === field && args.order === 'asc' ? 'desc' : 'asc',
+            page: 1,
+        });
+    }
+
+    function sortDirection(field: string): 'asc' | 'desc' | false {
+        if (args.orderBy !== field) return false;
+        return args.order === 'asc' ? 'asc' : 'desc';
+    }
+
+    const page = args.page || 1;
+    const currentPageLabel = `Page ${page} of ${pageCount || 1} (${data.totalCount} ${USER_LABEL.toLowerCase()}${data.totalCount === 1 ? '' : 's'})`;
+
     return (
-        <Box className="flex flex-col min-w-full m-auto p-6 rounded-2xl border-2 border-[#ccca]">
-            <Typography variant="h4" gutterBottom>
-                {`${USER_LABEL} Management`}
+        <Box className="admin-panel">
+            <Typography component="p" variant="body1">
+                {currentPageLabel}
+                {selectedIds.size > 0 ? ` · ${selectedIds.size} selected` : ''}
             </Typography>
 
             {message && message[1] && (
@@ -127,131 +158,109 @@ export default function UserListAdmin({
                 </Alert>
             )}
 
-            <div className="flex flex-row flex-wrap justify-between items-center">
-                Show status:
-                <Paper className="flex flex-row flex-wrap  gap-1 p-1 mb-1" elevation={2}>
-                    <Button
-                        size="x-small"
-                        variant="contained"
-                        color={!args.status ? 'secondary' : 'primary'}
-                        onClick={() => setArgs({...args, status: undefined})}
-                    >
-                        All
-                    </Button>
-                    {profileStatuses.map((value) => (
-                        <Button
-                            key={value}
-                            size="x-small"
-                            variant="contained"
-                            onClick={() => setArgs({...args, status: value})}
-                            color={value === args.status ? 'secondary' : 'primary'}
-                        >
-                            {snakeCaseToTitleCase(value)}
-                        </Button>
-                    ))}
-                </Paper>
-            </div>
-
-            <div className="flex flex-row flex-wrap justify-between items-center">
-                Sort by:
-                <Paper className="flex flex-row flex-wrap  gap-1 p-1 mb-1" elevation={2}>
-                    {['email', 'last_name', 'createdAt', 'updatedAt', 'status'].map((field) => (
-                        <Button
-                            key={field}
-                            size="x-small"
-                            variant="contained"
-                            onClick={() => setArgs({
-                                ...args,
-                                orderBy: field,
-                                order: args.orderBy === field && args.order === 'asc' ? 'desc' : 'asc'
-                            })}
-                            color={field === args.orderBy ? 'secondary' : 'primary'}
-                        >
-                            {snakeCaseToTitleCase(field)}
-                        </Button>
-                    ))}
-                    <Button
-                        size="x-small"
-                        variant="contained"
-                        onClick={() => setArgs({...args, order: 'asc'})}
-                        color={args.order === 'asc' ? 'secondary' : 'primary'}
-                    >
-                        Ascending
-                    </Button>
-                    <Button
-                        size="x-small"
-                        variant="contained"
-                        onClick={() => setArgs({...args, order: 'desc'})}
-                        color={args.order === 'desc' ? 'secondary' : 'primary'}
-                    >
-                        Descending
-                    </Button>
-                </Paper>
-            </div>
-
-            <div className="flex flex-row flex-wrap justify-between items-center">
-                {`Page ${args.page || 1} of ${pageCount} (Total Users: ${data.totalCount})`}
-                <PaginationLinks
-                    page={args.page || 1}
-                    setPage={(page: number) => setArgs({...args, page})}
-                    pageCount={pageCount}
-                />
-            </div>
-
-            <div className="flex flex-row flex-wrap justify-between items-center gap-2 my-2">
+            <div className="admin-toolbar">
                 <TextField
                     label="Search"
                     placeholder="Name, email, company, phone"
-                    size="small"
                     value={args.search || ''}
-                    onChange={(e) => setArgs({...args, search: e.target.value, page: 1})}
+                    onChange={(event) => setArgs({...args, search: event.target.value, page: 1})}
                 />
-                <div className="ml-auto flex items-center gap-2">
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={(e) => setActionsAnchorEl(e.currentTarget)}
-                        disabled={selectedIds.size === 0}
+                <AdminSelect
+                    id="artist-status-filter"
+                    label="Status"
+                    value={args.status || 'all'}
+                    onChange={(value) => setArgs({
+                        ...args,
+                        status: value === 'all' ? undefined : value,
+                        page: 1,
+                    })}
+                    options={[
+                        {value: 'all', label: 'All statuses'},
+                        ...profileStatuses.map((value) => ({
+                            value,
+                            label: getStatusName(value),
+                        })),
+                    ]}
+                />
+                <AdminSelect
+                    id="artist-sort-field"
+                    label="Sort by"
+                    value={args.orderBy || 'updatedAt'}
+                    onChange={(value) => setArgs({...args, orderBy: value, page: 1})}
+                    options={SORT_OPTIONS}
+                />
+                <AdminSelect
+                    id="artist-sort-order"
+                    label="Order"
+                    value={args.order || 'desc'}
+                    onChange={(value) => setArgs({
+                        ...args,
+                        order: value === 'asc' ? 'asc' : 'desc',
+                    })}
+                    options={[
+                        {value: 'desc', label: 'Newest first'},
+                        {value: 'asc', label: 'Oldest first'},
+                    ]}
+                />
+                <AdminSelect
+                    id="artist-page-size"
+                    label="Show"
+                    value={String(args.limit || 25)}
+                    onChange={(value) => setArgs({...args, limit: Number(value), page: 1})}
+                    options={LIMIT_OPTIONS}
+                />
+            </div>
+
+            <div className="admin-toolbar-actions">
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={(event) => setActionsAnchorEl(event.currentTarget)}
+                    disabled={selectedIds.size === 0}
+                >
+                    Actions
+                </Button>
+                <Menu
+                    anchorEl={actionsAnchorEl}
+                    open={Boolean(actionsAnchorEl)}
+                    onClose={() => setActionsAnchorEl(null)}
+                >
+                    <MenuItem onClick={() => {
+                        setEmailDialogOpen(true);
+                        setActionsAnchorEl(null);
+                    }}
                     >
-                        Actions
-                    </Button>
-                    <Menu
-                        anchorEl={actionsAnchorEl}
-                        open={Boolean(actionsAnchorEl)}
-                        onClose={() => setActionsAnchorEl(null)}
+                        Send bulk email template…
+                    </MenuItem>
+                    <MenuItem onClick={() => {
+                        setStatusDialogOpen(true);
+                        setActionsAnchorEl(null);
+                    }}
                     >
-                        <MenuItem onClick={() => {
-                            setEmailDialogOpen(true);
-                            setActionsAnchorEl(null);
-                        }}
-                        >Send bulk email template…
-                        </MenuItem>
-                        <MenuItem onClick={() => {
-                            setStatusDialogOpen(true);
-                            setActionsAnchorEl(null);
-                        }}
-                        >Change bulk artist status…
-                        </MenuItem>
-                    </Menu>
-                </div>
+                        Change bulk artist status…
+                    </MenuItem>
+                </Menu>
+                <Button variant="outlined" onClick={() => exportData('xlsx')}>
+                    Export to Excel
+                </Button>
+                <Button variant="outlined" onClick={() => exportData('csv')}>
+                    Export to CSV
+                </Button>
             </div>
 
             <TableContainer component={Paper}>
                 <Table>
                     <TableHead>
-                        <TableRow
-                            className="bg-blue-700 [&_th]:bold [&_th]:text-white [&_a]:text-white [&_th]:px-4 [&_th]:py-2"
-                        >
+                        <TableRow className="admin-table-head">
                             <TableCell padding="checkbox">
-                                <Box className='flex justify-center max-w-[32px]'>
+                                <Box className="flex justify-center max-w-[32px]">
                                     <Checkbox
                                         color="primary"
                                         indeterminate={someVisibleSelected}
                                         checked={allVisibleSelected}
-                                        onChange={async (e) => {
-                                            const checked = e.target.checked;
+                                        onChange={async (event) => {
+                                            const checked = event.target.checked;
                                             if (checked) {
-                                                // Want to select all
                                                 if (data.totalCount > userList.length) {
                                                     const wantsAll = window.confirm(`Only ${userList.length} of ${data.totalCount} ${USER_LABEL.toLowerCase()}s are loaded. Increase limit to select all filtered users?`);
                                                     if (wantsAll) {
@@ -261,82 +270,85 @@ export default function UserListAdmin({
                                                     }
                                                 }
                                                 const newSet = new Set(selectedIds);
-                                                userList.forEach(u => newSet.add(u.id));
+                                                userList.forEach((user) => newSet.add(user.id));
                                                 setSelectedIds(newSet);
                                             } else {
-                                                // Unselect visible rows
                                                 const newSet = new Set(selectedIds);
-                                                userList.forEach(u => newSet.delete(u.id));
+                                                userList.forEach((user) => newSet.delete(user.id));
                                                 setSelectedIds(newSet);
                                             }
                                         }}
                                         inputProps={{'aria-label': 'Select all users on page'}}
                                     />
-
                                 </Box>
                             </TableCell>
-                            <TableCell
-                                className="cursor-pointer underline hover:text-blue-200"
-                                onClick={() => setArgs({
-                                    ...args,
-                                    orderBy: 'last_name',
-                                    order: args.orderBy === 'last_name' && args.order === 'asc' ? 'desc' : 'asc'
-                                })}
-                            >
-                                Full Name
+                            <TableCell sortDirection={sortDirection('last_name')}>
+                                <TableSortLabel
+                                    active={args.orderBy === 'last_name'}
+                                    direction={args.orderBy === 'last_name' && args.order === 'asc' ? 'asc' : 'desc'}
+                                    onClick={() => toggleSort('last_name')}
+                                >
+                                    Full Name
+                                </TableSortLabel>
                             </TableCell>
                             <TableCell
-                                className={`${styles.hideOnMobile} cursor-pointer underline hover:text-blue-200`}
-                                onClick={() => setArgs({
-                                    ...args,
-                                    orderBy: 'email',
-                                    order: args.orderBy === 'email' && args.order === 'asc' ? 'desc' : 'asc'
-                                })}
+                                className={styles.hideOnMobile}
+                                sortDirection={sortDirection('email')}
                             >
-                                Email
+                                <TableSortLabel
+                                    active={args.orderBy === 'email'}
+                                    direction={args.orderBy === 'email' && args.order === 'asc' ? 'asc' : 'desc'}
+                                    onClick={() => toggleSort('email')}
+                                >
+                                    Email
+                                </TableSortLabel>
                             </TableCell>
                             <TableCell className={styles.hideOnTablet}>Category</TableCell>
                             <TableCell
-                                className={`${styles.hideOnTablet} cursor-pointer underline hover:text-blue-200`}
-                                onClick={() => setArgs({
-                                    ...args,
-                                    orderBy: 'updatedAt',
-                                    order: args.orderBy === 'updatedAt' && args.order === 'asc' ? 'desc' : 'asc'
-                                })}
+                                className={styles.hideOnTablet}
+                                sortDirection={sortDirection('updatedAt')}
                             >
-                                Updated
+                                <TableSortLabel
+                                    active={args.orderBy === 'updatedAt'}
+                                    direction={args.orderBy === 'updatedAt' && args.order === 'asc' ? 'asc' : 'desc'}
+                                    onClick={() => toggleSort('updatedAt')}
+                                >
+                                    Updated
+                                </TableSortLabel>
                             </TableCell>
                             <TableCell
-                                className={`${styles.hideOnMobile} cursor-pointer underline hover:text-blue-200`}
-                                onClick={() => setArgs({
-                                    ...args,
-                                    orderBy: 'status',
-                                    order: args.orderBy === 'status' && args.order === 'asc' ? 'desc' : 'asc'
-                                })}
+                                className={styles.hideOnMobile}
+                                sortDirection={sortDirection('status')}
                             >
-                                Status
+                                <TableSortLabel
+                                    active={args.orderBy === 'status'}
+                                    direction={args.orderBy === 'status' && args.order === 'asc' ? 'asc' : 'desc'}
+                                    onClick={() => toggleSort('status')}
+                                >
+                                    Status
+                                </TableSortLabel>
                             </TableCell>
                             <TableCell className={styles.hideOnTablet}>Images</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {userList.map(({
-                                           id,
-                                           first_name, last_name, email,
-                                           category, updatedAt, status: userStatus, uploads
-                                       }) => (
+                            id,
+                            first_name, last_name, email,
+                            category, updatedAt, status: userStatus, uploads
+                        }) => (
                             <TableRow
                                 key={email}
                                 sx={{'&:last-child td, &:last-child th': {border: 0}}}
                             >
                                 <TableCell padding="checkbox">
-                                    <Box className='flex justify-center max-w-[60px]'>
+                                    <Box className="flex justify-center max-w-[60px]">
                                         <Checkbox
                                             color="primary"
                                             checked={selectedIds.has(id)}
-                                            onChange={(e) => {
+                                            onChange={(event) => {
                                                 const newSet = new Set(selectedIds);
-                                                if (e.target.checked) newSet.add(id); else newSet.delete(id);
+                                                if (event.target.checked) newSet.add(id); else newSet.delete(id);
                                                 setSelectedIds(newSet);
                                             }}
                                             inputProps={{
@@ -351,8 +363,7 @@ export default function UserListAdmin({
                                     </Link>
                                 </TableCell>
                                 <TableCell scope="row" className={styles.hideOnMobile}>
-                                    <Link href={`mailto:${email}`} target="_blank">✉</Link>
-                                    {` ${email}`}
+                                    <Link href={`mailto:${email}`}>{email}</Link>
                                 </TableCell>
                                 <TableCell className={styles.hideOnTablet}>
                                     {category}
@@ -385,39 +396,23 @@ export default function UserListAdmin({
                 </Alert>
             )}
 
-            <div className="flex flex-row flex-wrap justify-between items-center">
-                {`Page ${args.page || 1} of ${pageCount} (Total Users: ${data.totalCount})`}
+            <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
+                <Typography component="p">{currentPageLabel}</Typography>
                 <PaginationLinks
-                    page={args.page || 1}
-                    setPage={(page: number) => setArgs({...args, page})}
+                    page={page}
+                    setPage={(nextPage: number) => setArgs({...args, page: nextPage})}
                     pageCount={pageCount}
                 />
-            </div>
-            <Stack spacing={2}>
-                <Button variant='contained'
-                        color='primary'
-                        onClick={() => exportData('xlsx')}
-                >
-                    Export to excel
-                </Button>
-
-                <Button variant='contained'
-                        color='primary'
-                        onClick={() => exportData('csv')}
-                >
-                    Export to csv
-                </Button>
             </Stack>
 
-            {/* Bulk Email Dialog */}
             <Dialog open={emailDialogOpen} onClose={() => setEmailDialogOpen(false)} maxWidth="md" fullWidth>
                 <DialogTitle>{`Batch Email ${selectedIds.size} ${USER_LABEL}${selectedIds.size === 1 ? '' : 's'}`}</DialogTitle>
                 <DialogContent>
                     <SendEmailAdmin
                         sendMail={sendMailSafe}
                         initialEmails={Array.from(selectedIds)
-                            .map((id) => userList.find(u => u.id === id)?.email)
-                            .filter((e): e is string => !!e)
+                            .map((id) => userList.find((user) => user.id === id)?.email)
+                            .filter((email): email is string => !!email)
                             .join(', ')}
                     />
                 </DialogContent>
@@ -426,15 +421,14 @@ export default function UserListAdmin({
                 </DialogActions>
             </Dialog>
 
-            {/* Bulk Status Dialog */}
             <Dialog open={statusDialogOpen} onClose={() => setStatusDialogOpen(false)} maxWidth="sm" fullWidth>
                 <DialogTitle>{`Change status for ${selectedIds.size} ${USER_LABEL}${selectedIds.size === 1 ? '' : 's'}`}</DialogTitle>
                 <DialogContent>
                     <UserStatusEditorAdmin
                         userStatus={profileStatuses[0]}
                         updateUserStatus={async (newStatus, sendTemplate) => {
-                            const { message: resultMessage } = await updateUsersStatusBulkSafe(Array.from(selectedIds), newStatus, sendTemplate);
-                            return { message: resultMessage };
+                            const {message: resultMessage} = await updateUsersStatusBulkSafe(Array.from(selectedIds), newStatus, sendTemplate);
+                            return {message: resultMessage};
                         }}
                     />
                 </DialogContent>
@@ -443,6 +437,5 @@ export default function UserListAdmin({
                 </DialogActions>
             </Dialog>
         </Box>
-
     );
 }

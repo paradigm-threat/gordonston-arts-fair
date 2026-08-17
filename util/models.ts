@@ -156,6 +156,14 @@ export class UserFileUploadModel extends Model {
     @Column({type: DataType.BOOLEAN, defaultValue: false})
     feature!: boolean;
 
+    /** Admin has approved this requested photo for the public homepage slideshow. */
+    @Column({type: DataType.BOOLEAN, defaultValue: false})
+    featureApproved!: boolean;
+
+    /** Admin declined this artist request. Cleared if the artist asks again. */
+    @Column({type: DataType.BOOLEAN, defaultValue: false})
+    featureDeclined!: boolean;
+
     @BelongsTo(() => UserModel)
     user!: UserModel;
 }
@@ -286,6 +294,12 @@ export async function initDatabase() {
 
         // await sequelize.authenticate();
         await sequelize.sync({alter: false, force: false, logging: true});
+        await sequelize.query(
+            'ALTER TABLE user_file_uploads ADD COLUMN IF NOT EXISTS "featureApproved" BOOLEAN NOT NULL DEFAULT false'
+        );
+        await sequelize.query(
+            'ALTER TABLE user_file_uploads ADD COLUMN IF NOT EXISTS "featureDeclined" BOOLEAN NOT NULL DEFAULT false'
+        );
         console.log('Database connection established successfully.');
         return sequelize;
     } catch (error) {

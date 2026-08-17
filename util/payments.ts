@@ -78,3 +78,29 @@ export function hasPriorCycleRegistrationPayment(transactions: FeeTransactionLik
     return !Number.isNaN(created.getTime()) && created < cycleStart;
   });
 }
+
+export function hasPriorCycleBoothPayment(transactions: FeeTransactionLike[]): boolean {
+  const cycleStart = getFeeCycleStartDate();
+  const allowed = new Set(boothFeeAmounts().filter((n) => !Number.isNaN(n)));
+  return transactions.some((transaction) => {
+    if (transaction.type && transaction.type !== 'charge.succeeded') return false;
+    const amount = parseInt(`${transaction.amount}`, 10);
+    if (!allowed.has(amount)) return false;
+    if (!transaction.createdAt) return false;
+    const created = new Date(transaction.createdAt);
+    return !Number.isNaN(created.getTime()) && created < cycleStart;
+  });
+}
+
+/**
+ * Last year's exhibitors may request a homepage feature.
+ * Imported roster rows and prior-cycle $15 / booth payments count as last year's Art Fair.
+ */
+export function canRequestWebsiteFeature(
+  transactions: FeeTransactionLike[],
+  status?: UserStatus,
+): boolean {
+  if (status === 'imported') return true;
+  return hasPriorCycleRegistrationPayment(transactions)
+    || hasPriorCycleBoothPayment(transactions);
+}

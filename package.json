@@ -1,6 +1,6 @@
 {
   "name": "gordonston-arts-fair",
-  "version": "2.1.60",
+  "version": "2.1.61",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -8,9 +8,11 @@
     "start": "next start",
     "build-start": "next build && next start",
     "lint": "next lint --fix",
+    "lint:check": "next lint",
     "test": "npm run test:e2e && npm run test:component",
     "test:e2e": "playwright test",
     "test:component": "playwright test -c playwright-ct.config.ts",
+    "test:component:ui": "playwright test -c playwright-ct.config.ts --ui",
     "test:install": "playwright install chromium",
     "prepare": "husky install",
     "stripe-listen": "stripe listen --forward-to localhost:3000/api/webhook/stripe",
@@ -51,6 +53,8 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",
+    "@clerk/backend": "^3.16.6",
+    "@clerk/testing": "^2.2.24",
     "@playwright/experimental-ct-react": "^1.61.1",
     "@playwright/test": "^1.61.1",
     "@types/bcrypt": "^5.0.2",

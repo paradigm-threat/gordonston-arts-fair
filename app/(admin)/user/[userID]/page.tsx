@@ -8,10 +8,12 @@ import React from 'react';
 import { fetchUserLogs } from '@util/logActions';
 import { validateAdminSession } from '@util/session';
 import UserTransactionView from '@components/User/UserTransactionView';
-import { fetchTransactions, addManualTransaction } from '@util/transActions';
+import { fetchTransactions } from '@util/transActions';
 import { sendMail } from '@util/emailActions';
 import SendEmailAdmin from '@components/Admin/SendEmailAdmin';
-import ManualTransactionAdmin from '@components/Admin/ManualTransactionAdmin';
+import { EditProfileLink } from '@components/Admin/EditProfileLink';
+import { ImpersonateUserButton } from '@components/Admin/ImpersonateUserButton';
+import { getFullName } from '@util/profile';
 
 export const metadata = {
     title: 'Manage an Artist',
@@ -37,19 +39,25 @@ export default async function AdminUserManagementPage({
 
             <Stack spacing={2} padding={2}>
 
-                <Box className="flex flex-row gap-2">
-                    <Link
-                        href="/user"
-                        className="text-blue-600 hover:text-blue-800 inline-flex items-center gap-2"
-                    >
+                <Box className="flex flex-row flex-wrap items-center gap-3">
+                    <Link href="/user">
                         {`← Back to ${USER_LABEL} List`}
                     </Link>
-                    <Link
+                    <EditProfileLink
                         href={`/user/${userProfile.id}/edit`}
-                        className="text-blue-600 hover:text-blue-800 inline-flex items-center gap-2"
-                    >
-                        Click here to Edit Profile
-                    </Link>
+                        label="Edit profile"
+                    />
+                    <EditProfileLink
+                        href={`/user/${userProfile.id}/edit#photos`}
+                        label="Edit photos"
+                        variant="photos"
+                    />
+                    {userProfile.type !== 'admin' && (
+                        <ImpersonateUserButton
+                            userId={userProfile.id}
+                            displayName={getFullName(userProfile.first_name, userProfile.last_name)}
+                        />
+                    )}
                 </Box>
                 <UserStatusEditorAdmin
                     userStatus={userProfile.status}
@@ -68,23 +76,10 @@ export default async function AdminUserManagementPage({
                     userProfile={userProfile.toJSON()}
                     userUploads={userUploads.map((u) => u.toJSON())}
                 />
-                <Box className="flex flex-row gap-2">
-                    <Link
-                        href={`/user/${userProfile.id}/edit`}
-                        className="text-blue-600 hover:text-blue-800 inline-flex items-center gap-2"
-                    >
-                        Click here to edit {USER_LABEL} profile information or manage/delete images
-                    </Link>
-                </Box>
 
                 <SendEmailAdmin
                     userProfile={userProfile.toJSON()}
                     sendMail={sendMail}
-                />
-
-                <ManualTransactionAdmin
-                    userID={userProfile.id}
-                    addManualTransaction={addManualTransaction}
                 />
 
                 <UserLogView

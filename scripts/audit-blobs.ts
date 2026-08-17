@@ -159,6 +159,8 @@ async function main() {
                             height,
                             url,
                             feature: false,
+                            featureApproved: false,
+                            featureDeclined: false,
                         } as Parameters<typeof UserFileUploadModel.create>[0]);
                         insertedIds.push(created.id);
                         console.log(`  inserted id=${created.id} path=${p}`);

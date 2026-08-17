@@ -100,6 +100,18 @@ export function getRegistrationCheckoutBlockedMessage(now = new Date()): string 
   return '';
 }
 
+export function getEventYear(): number {
+  const eventDateStr = process.env.NEXT_PUBLIC_EVENT_DATE || '';
+  const yearMatch = eventDateStr.trim().match(/^(\d{4})/);
+  if (yearMatch) return parseInt(yearMatch[1], 10);
+  return new Date().getFullYear();
+}
+
+/** Calendar year of the most recently held Art Fair (the year before NEXT_PUBLIC_EVENT_DATE). */
+export function getLastFairYear(): number {
+  return getEventYear() - 1;
+}
+
 export function getApplicationStatusText(now = new Date()): string {
   const registrationOpenDateString = formatDate(getRegistrationOpenDate());
   const registrationEndDateString = formatDate(getRegistrationEndDate(), false, false);

@@ -2,7 +2,6 @@ import React from 'react';
 import {
   Alert,
   Box,
-  Stack,
   Table,
   TableBody,
   TableCell,
@@ -12,7 +11,7 @@ import {
   Typography
 } from '@mui/material';
 import { getStatusName } from '@util/profile';
-import ReloadingImage from '@components/Image/ReloadingImage';
+import { UploadThumbnailGrid } from '@components/User/UploadThumbnailGrid';
 import Link from 'next/link';
 import { formatPhone } from '@components/FormFields/formatting';
 import { UserFileUploadModel, UserModel } from '@util/models';
@@ -59,11 +58,11 @@ function ProfileView({
   }
 
   return (
-    <Box className="flex flex-col min-w-full m-auto p-6 gap-2 rounded-2xl border-2 border-[#ccca]">
+    <Box className="admin-panel">
       <TableContainer>
         <Table>
           <TableHead>
-            <TableRow className="bg-blue-600 [&_th]:bold [&_th]:text-white [&_th]:px-4 [&_th]:py-2">
+            <TableRow className="admin-table-head">
               <TableCell colSpan={2}>
                 Contact Information
               </TableCell>
@@ -95,59 +94,10 @@ function ProfileView({
       </TableContainer>
 
       <Typography component="h2" id="step1">
-        Uploaded files
+        {`Uploaded files (${userUploads.length})`}
       </Typography>
 
-      <Stack direction="column">
-        <Box className="bg-green-700 bold text-white p-4 py-2 rounded-md">
-          File uploads:
-          {userUploads.length}
-        </Box>
-        {userUploads.map(({
-          title, description, url, width, height
-        }) => (
-          <Stack
-            padding={1}
-            spacing={2}
-            key={url + title}
-            direction={{ xs: 'column', sm: 'row' }}
-          >
-            <Stack
-              spacing={2}
-              sx={{
-                width: { xs: '100%', sm: '50%' },
-              }}
-            >
-              <Typography component="h2" className="break-words">
-                {title}
-              </Typography>
-              {description && (
-              <Typography variant="body2">
-                {description}
-              </Typography>
-              )}
-            </Stack>
-            {url && (
-            <Box
-              sx={{
-                width: { xs: '100%', sm: '50%' },
-              }}
-            >
-              <Link href={url} target="_blank" rel="noreferrer" tabIndex={0}>
-                <ReloadingImage
-                  loading="lazy"
-                  src={url}
-                  alt={title}
-                  width={width}
-                  height={height}
-                />
-              </Link>
-            </Box>
-            )}
-
-          </Stack>
-        ))}
-      </Stack>
+      <UploadThumbnailGrid uploads={userUploads} />
 
     </Box>
   );

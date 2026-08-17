@@ -2,7 +2,6 @@ import DateLocationApply from '@fragments/date-location-apply.mdx';
 import Link from 'next/link';
 import { Box } from '@mui/material';
 import { AppearanceSelect } from '@components/Theme/AppearanceSelect';
-import { WebMcpHint } from '@components/WebMCP/WebMcpHint';
 
 interface FooterContentProps {
   showDates?: boolean
@@ -23,7 +22,7 @@ export function FooterContent({ showDates = false }: FooterContentProps) {
           {' '}
           and can be edited via
           {' '}
-          <Link href="https://github.com/clevertree/gordonston-arts-fair" target="_blank">Github.com</Link>
+          <Link href="https://gitlab.com/clevertree/gordonston-arts-fair" target="_blank">GitLab.com</Link>
         </span>
         <span>
           For help submitting your Artist Profile please contact the admin at
@@ -36,7 +35,6 @@ export function FooterContent({ showDates = false }: FooterContentProps) {
           <Link href="/terms">Terms and Conditions</Link>
         </span>
         {showDates && <AppearanceSelect />}
-        <WebMcpHint />
       </Box>
     </footer>
   );

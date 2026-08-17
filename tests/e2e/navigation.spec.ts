@@ -12,11 +12,18 @@ test.describe('Site navigation', () => {
         await expect(page).toHaveURL(/#faq/);
     });
 
-    test('artists link opens apply page', async ({page}) => {
+    test('apply link opens apply page', async ({page}) => {
         await page.goto('/', {waitUntil: 'domcontentloaded'});
 
-        await page.locator('header a[href="/apply#registration"]').click();
+        await page.locator('header').getByRole('link', {name: 'Apply', exact: true}).click();
         await page.waitForURL(/\/apply/);
         await expect(page.getByRole('heading', {name: 'Artist Registration'})).toBeVisible();
+    });
+
+    test('impersonate page explains a missing ticket', async ({page}) => {
+        await page.goto('/impersonate', {waitUntil: 'domcontentloaded'});
+        await expect(page.getByRole('heading', {name: 'Log in as artist'})).toBeVisible();
+        await expect(page.getByText(/missing or expired/i)).toBeVisible();
+        await expect(page.getByRole('link', {name: 'Return to the artist list'})).toBeVisible();
     });
 });

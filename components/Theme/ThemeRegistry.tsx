@@ -5,19 +5,51 @@ import {useEffect, useMemo, useState} from 'react';
 import {ThemeProvider} from '@mui/material/styles';
 import {AppRouterCacheProvider} from '@mui/material-nextjs/v13-appRouter';
 import {ClerkProvider} from '@clerk/nextjs';
-import {createAppTheme} from './theme';
+import {createAppTheme, GOLD_DARK, GOLD_LIGHT} from './theme';
 import {subscribeToAppearance} from './AppearanceSelect';
 import type {ResolvedTheme} from '@util/appearance';
 
 function clerkAppearance(mode: ResolvedTheme) {
   const dark = mode === 'dark';
+  const text = dark ? '#f3f3f3' : '#121212';
+  const muted = dark ? '#d8d8d8' : '#333333';
+  const background = dark ? '#1e1e1e' : '#ffffff';
   return {
     variables: {
-      colorBackground: dark ? '#1e1e1e' : '#ffffff',
-      colorText: dark ? '#f3f3f3' : '#121212',
-      colorPrimary: '#1976d2',
+      colorBackground: background,
+      colorText: text,
+      colorTextSecondary: muted,
+      colorNeutral: text,
+      colorPrimary: dark ? GOLD_DARK : GOLD_LIGHT,
       colorInputBackground: dark ? '#121212' : '#ffffff',
-      colorInputText: dark ? '#f3f3f3' : '#121212',
+      colorInputText: text,
+    },
+    elements: {
+      userButtonPopoverCard: {
+        backgroundColor: background,
+        color: text,
+      },
+      userButtonPopoverMain: {
+        color: text,
+      },
+      userButtonPopoverActionButton: {
+        color: text,
+      },
+      userButtonPopoverActionButtonText: {
+        color: text,
+      },
+      userButtonPopoverActionButtonIcon: {
+        color: text,
+      },
+      userButtonPopoverCustomItemButton: {
+        color: text,
+      },
+      userButtonPopoverCustomItemButton__inner: {
+        color: text,
+      },
+      userButtonPopoverFooter: {
+        backgroundColor: dark ? '#121212' : '#f4f4f4',
+      },
     },
   };
 }

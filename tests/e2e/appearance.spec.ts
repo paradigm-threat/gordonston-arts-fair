@@ -1,4 +1,5 @@
 import {test, expect} from '@playwright/test';
+import {expectNoContrastViolations} from '../helpers/a11y';
 
 test.describe('Appearance', () => {
     test('header offers Light, Dark, and System default icons', async ({page}) => {
@@ -31,17 +32,31 @@ test.describe('Appearance', () => {
         const spacing = await page.evaluate(() => {
             const faq = [...document.querySelectorAll('.header-nav a')]
                 .find((link) => link.textContent?.trim() === 'FAQ');
-            const artists = [...document.querySelectorAll('.header-nav a')]
-                .find((link) => link.textContent?.trim() === 'Artists');
+            const apply = [...document.querySelectorAll('.header-nav a')]
+                .find((link) => link.textContent?.trim() === 'Apply');
             const tools = document.querySelector('.header-tools');
-            if (!faq || !artists || !tools) return null;
-            const linkGap = artists.getBoundingClientRect().left - faq.getBoundingClientRect().right;
-            const toolsGap = tools.getBoundingClientRect().left - artists.getBoundingClientRect().right;
+            if (!faq || !apply || !tools) return null;
+            const linkGap = apply.getBoundingClientRect().left - faq.getBoundingClientRect().right;
+            const toolsGap = tools.getBoundingClientRect().left - apply.getBoundingClientRect().right;
             return {linkGap, toolsGap};
         });
 
         expect(spacing).not.toBeNull();
         expect(Math.abs(spacing!.linkGap - spacing!.toolsGap)).toBeLessThan(2);
         expect(spacing!.toolsGap).toBeLessThan(24);
+    });
+
+    test('appearance control and gold headings pass contrast in light and dark', async ({page}) => {
+        await page.goto('/', {waitUntil: 'domcontentloaded'});
+        const appearance = page.locator('header').getByRole('group', {name: 'Appearance'});
+        await expect(appearance).toHaveAttribute('data-hydrated', 'true', {timeout: 15_000});
+
+        await appearance.getByRole('button', {name: 'Light'}).click();
+        await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+        await expectNoContrastViolations(page);
+
+        await appearance.getByRole('button', {name: 'Dark'}).click();
+        await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+        await expectNoContrastViolations(page);
     });
 });

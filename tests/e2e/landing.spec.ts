@@ -1,5 +1,5 @@
 import {test, expect} from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
+import {expectNoA11yViolations, expectNoContrastViolations} from '../helpers/a11y';
 
 test.describe('Landing page', () => {
     test('shows fair branding and 2027 event details', async ({page}) => {
@@ -35,21 +35,34 @@ test.describe('Landing page', () => {
         await expect(page.locator('#main-content')).toBeVisible();
     });
 
-    test('has no critical accessibility violations', async ({page}) => {
+    test('has no WCAG A/AA violations, including contrast', async ({page}) => {
         await page.goto('/', {waitUntil: 'domcontentloaded'});
-
-        const results = await new AxeBuilder({page}).analyze();
-        expect(results.violations).toEqual([]);
+        await expectNoContrastViolations(page);
+        await expectNoA11yViolations(page);
     });
 
-    test('has no critical accessibility violations in dark mode', async ({page}) => {
+    test('has no WCAG A/AA violations in dark mode, including contrast', async ({page}) => {
         await page.addInitScript(() => {
             localStorage.setItem('gaf-appearance', 'dark');
         });
         await page.goto('/', {waitUntil: 'domcontentloaded'});
         await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+        await expectNoContrastViolations(page);
+        await expectNoA11yViolations(page);
+    });
 
-        const results = await new AxeBuilder({page}).analyze();
-        expect(results.violations).toEqual([]);
+    test('featured slideshow stays off unless an approved photo is on the page', async ({page}) => {
+        await page.goto('/', {waitUntil: 'domcontentloaded'});
+
+        const slideshow = page.locator('#featured-artwork');
+        if (await slideshow.count() === 0) {
+            await expect(page.getByRole('heading', {name: /Artwork from the \d{4} Gordonston Art Fair/})).toHaveCount(0);
+            return;
+        }
+
+        await expect(slideshow.getByRole('heading', {name: /Artwork from the \d{4} Gordonston Art Fair/})).toBeVisible();
+        await expect(slideshow.getByText(/These pieces were shown at last year's fair/i)).toBeVisible();
+        await expect(slideshow.getByText(/^by /)).toBeVisible();
+        await expect(slideshow.locator('.featured-slide-description')).not.toBeEmpty();
     });
 });

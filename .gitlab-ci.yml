@@ -1,0 +1,63 @@
+# Playwright component tests do not need DATABASE_URL or Clerk secrets.
+# Full e2e (`npm run test:e2e`) stays on the pre-commit hook because it boots
+# next dev against local credentials.
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+
+stages:
+  - test
+
+.node:
+  image: mcr.microsoft.com/playwright:v1.61.1-jammy
+  interruptible: true
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - node_modules/
+  before_script:
+    - npm ci
+
+lint:
+  extends: .node
+  stage: test
+  script:
+    - npm run lint:check
+
+playwright:component:
+  extends: .node
+  stage: test
+  script:
+    - npm run test:component
+  artifacts:
+    when: always
+    paths:
+      - playwright-report/
+      - test-results/
+    expire_in: 7 days
+
+# Opt-in: set DATABASE_URL, CLERK_SECRET_KEY (sk_test_ only),
+# NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY (pk_test_), and E2E_ENABLED=1
+# on a dedicated test instance. Do not point this at production.
+playwright:e2e:
+  extends: .node
+  stage: test
+  variables:
+    CI: "true"
+    PLAYWRIGHT_PORT: "3000"
+  script:
+    - npm run test:e2e
+  artifacts:
+    when: always
+    paths:
+      - playwright-report/
+      - test-results/
+    expire_in: 7 days
+  rules:
+    - if: $E2E_ENABLED == "1" && $DATABASE_URL && $CLERK_SECRET_KEY

@@ -12,6 +12,8 @@ const publicEnv = {
     NEXT_PUBLIC_NOTIFY_DATE: process.env.NEXT_PUBLIC_NOTIFY_DATE ?? '',
     NEXT_PUBLIC_REGISTRATION_FEE: process.env.NEXT_PUBLIC_REGISTRATION_FEE ?? '',
     NEXT_PUBLIC_BOOTH_FEE: process.env.NEXT_PUBLIC_BOOTH_FEE ?? '',
+    NEXT_PUBLIC_BOOTH_DOUBLE_FEE: process.env.NEXT_PUBLIC_BOOTH_DOUBLE_FEE ?? '',
+    NEXT_PUBLIC_MAX_IMAGE_WIDTH: process.env.NEXT_PUBLIC_MAX_IMAGE_WIDTH ?? '',
 };
 
 export default defineConfig({
@@ -21,6 +23,9 @@ export default defineConfig({
     forbidOnly: !!process.env.CI,
     retries: process.env.CI ? 2 : 0,
     timeout: 60_000,
+    reporter: process.env.CI
+        ? [['list'], ['junit', {outputFile: 'test-results/junit.xml'}], ['html', {open: 'never'}]]
+        : [['list'], ['html', {open: 'never'}]],
     use: {
         trace: 'on-first-retry',
         ctPort: 3100,
@@ -51,6 +56,10 @@ export default defineConfig({
                     {
                         find: 'next/link',
                         replacement: path.resolve(__dirname, './tests/mocks/next-link.tsx'),
+                    },
+                    {
+                        find: 'next/image',
+                        replacement: path.resolve(__dirname, './tests/mocks/next-image.tsx'),
                     },
                 ],
             },

@@ -3,13 +3,16 @@ import {
   fetchProfileFromSession,
   fetchProfileStatus,
   updateFile as updateFileAction,
-  uploadFile
+  uploadFile as uploadFileAction,
 } from '@util/profileActions';
 import Link from 'next/link';
 import { ArtistStepper } from '@components/User/ArtistStepper';
 import { Stack } from '@mui/material';
 import React from 'react';
 import { ProfileUploads } from '@components/User/ProfileUploads';
+import { fetchTransactions } from '@util/transActions';
+import { canRequestWebsiteFeature } from '@util/payments';
+import { getLastFairYear } from '@util/date';
 
 export const metadata = {
   title: 'Upload Artist Images',
@@ -21,6 +24,8 @@ export default async function ProfileUploadsPage() {
     status: profileStatus,
     uploads: userUploads
   } = await fetchProfileStatus(userProfile);
+  const transactions = await fetchTransactions(userProfile.id);
+  const canRequestFeature = canRequestWebsiteFeature(transactions, userProfile.status);
 
   return (
     <Stack spacing={2}>
@@ -30,11 +35,16 @@ export default async function ProfileUploadsPage() {
 
       <ProfileUploads
         userUploads={userUploads.map((u) => u.toJSON())}
+        canRequestFeature={canRequestFeature}
+        lastFairYear={getLastFairYear()}
         updateFile={async (file) => {
           'use server';
           return updateFileAction(userProfile.id, file);
         }}
-        uploadFile={uploadFile}
+        uploadFile={async (file) => {
+          'use server';
+          return uploadFileAction(userProfile.id, file);
+        }}
         deleteFile={async (fileID) => {
           'use server';
           return deleteFileAction(userProfile.id, fileID);

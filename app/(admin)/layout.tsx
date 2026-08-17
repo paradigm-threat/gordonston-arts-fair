@@ -28,11 +28,12 @@ export default function AdminLayout({
                     <nav className="header-nav" aria-label="Main">
                         <Link href="/">Home</Link>
                         <Link href="/user">User list</Link>
+                        <Link href="/user/featured">Featured photos</Link>
                     </nav>
                     <HeaderAccountTools/>
                 </FloatingDiv>
             </header>
-            <article id="main-content" role="main" className="max-w-screen-lg flex flex-col z-[2] m-auto p-4">
+            <article id="main-content" role="main" className="admin-ui max-w-screen-xl flex flex-col z-[2] m-auto p-4">
                 {testMode && <div className="bg-red-800 text-white font-bold text-center p-2">TEST MODE</div>}
                 <Suspense fallback={<SuspenseContent/>}>
                     {children}

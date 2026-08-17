@@ -42,6 +42,8 @@ interface ProfileUploadFormProps {
 
     // status: 'ready' | 'unsaved' | 'updating' | 'error'
     adminMode?: boolean,
+    canRequestFeature?: boolean,
+    lastFairYear?: number,
 }
 
 export function ProfileUploadForm({
@@ -53,6 +55,8 @@ export function ProfileUploadForm({
                                       // onUpdate,
                                       // status
                                       adminMode = false,
+                                      canRequestFeature = false,
+                                      lastFairYear,
                                   }: ProfileUploadFormProps) {
     // eslint-disable-next-line no-param-reassign
     // uploadHooks[fileUpload.id] = formUpload;
@@ -111,6 +115,7 @@ export function ProfileUploadForm({
             // onUpdate(updatedStatus);
             setStatus('ready');
             setMessage(['success', updateMessage]);
+            router.refresh();
         } catch (e: unknown) {
             setStatus('ready');
             setMessage(['error', (e as Error).message]);
@@ -119,9 +124,16 @@ export function ProfileUploadForm({
             behavior: 'smooth',
             block: 'end',
         });
-    }, [fileUploadClient, formUpload, updateFile]);
+    }, [fileUploadClient, formUpload, updateFile, router]);
 
     const formRef = useRef<HTMLFormElement>(null);
+    const showFeatureControls = canRequestFeature || !!fileUploadServer.feature;
+    let featureHelpText = 'Checking the box does not put the photo on the site. Click Update Image to send the request. An organizer will review it before it appears in the last-year slideshow on the home page.';
+    if (fileUploadServer.featureApproved && fileUploadServer.feature) {
+        featureHelpText = 'This photo is on the home page. Uncheck the box and click Update Image to take it down.';
+    } else if (fileUploadServer.feature) {
+        featureHelpText = 'We have your request. This photo is not on the home page until an organizer reviews it. Uncheck the box and click Update Image if you want to withdraw.';
+    }
     return (
         <TableRow
             key={fileUploadServer.id}
@@ -171,13 +183,27 @@ export function ProfileUploadForm({
                                 }
                             }}
                         />
-                        <FormControlLabel
-                            control={<Checkbox
-                                checked={!!fileUploadClient.feature}
-                                {...formUpload.setupInput('feature', 'Feature on Front page')}
-                                     />}
-                            label="Feature this image on the ArtFair Website"
-                        />
+                        {showFeatureControls && (
+                            <>
+                                <FormControlLabel
+                                    control={(
+                                        <Checkbox
+                                            checked={!!fileUploadClient.feature}
+                                            onChange={(e) => {
+                                                setFileUploadClient((prev) => ({
+                                                    ...prev,
+                                                    feature: e.target.checked,
+                                                }));
+                                            }}
+                                        />
+                                    )}
+                                    label={`Ask to feature this image on the ${lastFairYear || 'last year'} Art Fair home page`}
+                                />
+                                <Typography variant="body2" sx={{pl: 4, maxWidth: '40rem'}}>
+                                    {featureHelpText}
+                                </Typography>
+                            </>
+                        )}
                         <Button
                             type="submit"
                             variant="contained"
@@ -201,18 +227,16 @@ export function ProfileUploadForm({
                     </Stack>
                 </form>
             </TableCell>
-            <TableCell sx={{position: 'relative', width: '50%'}}>
+            <TableCell sx={{position: 'relative', width: '50%', minWidth: '12rem'}}>
                 {fileUploadServer.url && (
                     <Link href={fileUploadServer.url} target="_blank" rel="noreferrer">
                         <Image
                             loading="lazy"
                             src={fileUploadServer.url}
-                            alt={fileUploadClient.title}
-                            width={fileUploadServer.width}
-                            height={fileUploadServer.height}
-                            style={{
-                                height: 'auto'
-                            }}
+                            alt={fileUploadClient.title || 'Uploaded artwork'}
+                            width={Math.max(fileUploadServer.width || 0, 1)}
+                            height={Math.max(fileUploadServer.height || 0, 1)}
+                            className="upload-preview"
                         />
                     </Link>
                 )}

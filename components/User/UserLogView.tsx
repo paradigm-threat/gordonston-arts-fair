@@ -4,7 +4,6 @@ import React, {useEffect, useState} from 'react';
 import {
     Alert,
     Box,
-    Button,
     Paper,
     Table,
     TableBody,
@@ -14,10 +13,11 @@ import {
     TableRow,
     Typography
 } from '@mui/material';
+import {AdminSelect} from '@components/Admin/AdminSelect';
 import type {AlertColor} from '@mui/material/Alert';
 
 import {UserLogSearchParams} from '@util/logActions';
-import {logTypes} from '@types';
+import {logTypes, LogType} from '@types';
 import {snakeCaseToTitleCase} from '@util/format';
 import {UserLogModel} from '@util/models';
 
@@ -47,7 +47,7 @@ export default function UserLogView({fetchUserLogs, title}: UserLogProps) {
     }, [args, fetchUserLogs]);
 
     return (
-        <Box className="flex flex-col min-w-full m-auto p-6 rounded-2xl border-2 border-[#ccca]">
+        <Box className="admin-panel">
             <Typography component="h2" gutterBottom>
                 {title}
             </Typography>
@@ -58,38 +58,31 @@ export default function UserLogView({fetchUserLogs, title}: UserLogProps) {
                 </Alert>
             )}
 
-            <div className="flex flex-row">
-                <Paper className="flex flex-row flex-wrap  gap-1 p-1 mb-1"
-                       elevation={2}
-                >
-                    <Button
-                        size="x-small"
-                        variant="contained"
-                        color={!args.type ? 'secondary' : 'primary'}
-                        onClick={() => setArgs({...args, type: undefined})}
-                    >
-                        All
-                    </Button>
-                    {logTypes.map((value) => (
-                        <Button
-                            key={value}
-                            size="x-small"
-                            variant="contained"
-                            onClick={() => setArgs({...args, type: value})}
-                            color={value === args.type ? 'secondary' : 'primary'}
-                        >
-                            {snakeCaseToTitleCase(value)}
-                        </Button>
-                    ))}
-                </Paper>
+            <div className="admin-toolbar">
+                <AdminSelect
+                    id="log-type-filter"
+                    label="Log type"
+                    value={args.type || 'all'}
+                    onChange={(value) => setArgs({
+                        ...args,
+                        type: value === 'all' ? undefined : value as LogType,
+                    })}
+                    options={[
+                        {value: 'all', label: 'All logs'},
+                        ...logTypes.map((value) => ({
+                            value,
+                            label: snakeCaseToTitleCase(value),
+                        })),
+                    ]}
+                />
             </div>
 
             <TableContainer component={Paper}>
                 <Table>
                     <TableHead>
-                        <TableRow className="bg-blue-700 [&_th]:bold [&_th]:text-white [&_th]:px-4 [&_th]:py-2">
+                        <TableRow className="admin-table-head">
                             <TableCell
-                                className="cursor-pointer underline hover:text-blue-200"
+                                className="cursor-pointer underline"
                                 align="center"
                                 onClick={() => setArgs({
                                     ...args,

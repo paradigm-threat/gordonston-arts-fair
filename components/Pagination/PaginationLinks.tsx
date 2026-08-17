@@ -1,4 +1,4 @@
-import { Button, Paper } from '@mui/material';
+import {Button, FormControl, InputLabel, MenuItem, Select} from '@mui/material';
 
 export interface IPaginationLinks {
   pageCount: number,
@@ -12,35 +12,41 @@ export function PaginationLinks(props: IPaginationLinks) {
     page = 1,
     pageCount = 1
   } = props;
+  const safePageCount = Math.max(pageCount, 1);
+  const pages = Array.from({length: safePageCount}, (_, index) => index + 1);
+
   return (
-    <Paper className="flex flex-row flex-wrap gap-3 p-1 px-4" elevation={2}>
+    <div className="flex flex-row flex-wrap items-center gap-3">
       <Button
         disabled={page <= 1}
-        size="x-small"
-        variant="contained"
+        variant="outlined"
         onClick={() => setPage(page - 1)}
       >
         Previous
       </Button>
-      {Array.from({ length: pageCount }, (_, index) => index + 1).map((i) => (
-        <Button
-          key={i}
-          size="x-small"
-          variant="contained"
-          onClick={() => setPage(i)}
-          color={page === i ? 'secondary' : 'primary'}
+      <FormControl sx={{minWidth: 160}}>
+        <InputLabel id="page-select-label">Page</InputLabel>
+        <Select
+          labelId="page-select-label"
+          id="page-select"
+          label="Page"
+          value={String(Math.min(page, safePageCount))}
+          onChange={(event) => setPage(Number(event.target.value))}
         >
-          {i}
-        </Button>
-      ))}
+          {pages.map((pageNumber) => (
+            <MenuItem key={pageNumber} value={String(pageNumber)}>
+              {`${pageNumber} of ${safePageCount}`}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
       <Button
-        disabled={page >= pageCount}
-        size="x-small"
-        variant="contained"
+        disabled={page >= safePageCount}
+        variant="outlined"
         onClick={() => setPage(page + 1)}
       >
         Next
       </Button>
-    </Paper>
+    </div>
   );
 }

@@ -82,7 +82,7 @@ export default function ManualTransactionAdmin({
     }
 
     return (
-        <Box className="flex flex-col min-w-full m-auto p-6 rounded-2xl border-2 border-[#ccca]">
+        <Box className="admin-panel">
             <Typography component="h2" variant="h6" gutterBottom>
                 Add Manual Transaction
             </Typography>
@@ -97,7 +97,7 @@ export default function ManualTransactionAdmin({
                 <TableContainer component={Paper}>
                     <Table>
                         <TableHead>
-                            <TableRow className="bg-blue-700 [&_th]:bold [&_th]:text-white [&_th]:px-4 [&_th]:py-2">
+                            <TableRow className="admin-table-head">
                                 <TableCell colSpan={2}>Transaction Details</TableCell>
                             </TableRow>
                         </TableHead>

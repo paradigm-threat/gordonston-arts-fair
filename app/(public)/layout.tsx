@@ -33,7 +33,7 @@ export default function ArtistLayout({
                         <Link href="/#artist-amenities">Amenities</Link>
                         <Link href="/#volunteering">Volunteer</Link>
                         <Link href="/#faq">FAQ</Link>
-                        <Link href="/apply#registration">Artists</Link>
+                        <Link href="/apply#registration">Apply</Link>
                     </nav>
                     <HeaderAccountTools/>
                 </FloatingDiv>

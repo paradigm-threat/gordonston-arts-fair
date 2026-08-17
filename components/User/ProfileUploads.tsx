@@ -22,8 +22,9 @@ import {ProfileUploadForm} from '@components/User/ProfileUploadForm';
 import type {AlertColor} from '@mui/material/Alert';
 import PaymentModal from '@components/Modal/PaymentModal';
 import {useRouter} from 'next/navigation';
-import {convertImageToJPG} from "@util/convertImg";
+import {convertImageToJPG} from '@util/convertImg';
 import {logClientError} from '@util/logActions';
+import {processImageUploads, summarizeImageUploads} from '@util/uploadBatch';
 
 interface ProfileUploadsProps {
     adminMode?: boolean,
@@ -36,6 +37,8 @@ interface ProfileUploadsProps {
     }>
 
     deleteFile(fileID: number): Promise<{ result: IProfileStatus, message: string }>
+    canRequestFeature?: boolean,
+    lastFairYear?: number,
 }
 
 export function ProfileUploads({
@@ -44,40 +47,91 @@ export function ProfileUploads({
                                    updateFile,
                                    deleteFile,
                                    adminMode = false,
+                                   canRequestFeature = false,
+                                   lastFairYear,
                                }: ProfileUploadsProps) {
     const fileUploadCount = userUploads.length;
-    // const [status, setStatus] = useState<'ready' | 'unsaved' | 'updating' | 'error'>('ready');
     const [message, setMessage] = useState<[AlertColor, string]>(['success', '']);
     const [showModal, setShowModal] = useState<'none' | IProfileStatusAction>('none');
+    const [uploading, setUploading] = useState(false);
+    const [dragOver, setDragOver] = useState(false);
     const uploadFilesRef = useRef<HTMLInputElement>(null);
-    // const hasTriggeredUpload = useRef(false);
-
+    const uploadingRef = useRef(false);
     const router = useRouter();
+
     const handleUserProfileUpdate = useCallback((newStatus: IProfileStatus) => {
-        const {
-            // complete: isUpdatedProfileComplete,
-            action
-        } = newStatus;
+        const {action} = newStatus;
         if (action) {
             setShowModal(action);
         }
     }, []);
 
-    // useEffect(() => {
-    //   setTimeout(() => {
-    //     if (fileUploadCount === 0 && !hasTriggeredUpload.current) {
-    //       hasTriggeredUpload.current = true;
-    //       uploadFilesRef.current?.click();
-    //     }
-    //   }, 1000);
-    // }, [fileUploadCount]);
+    const handleSelectedFiles = useCallback(async (fileList: FileList | File[]) => {
+        const files = Array.from(fileList);
+        if (files.length === 0 || uploadingRef.current) return;
+
+        uploadingRef.current = true;
+        setUploading(true);
+        setMessage(['info', `Uploading ${files.length} file${files.length === 1 ? '' : 's'}...`]);
+        try {
+            const result = await processImageUploads(files, {
+                convert: convertImageToJPG,
+                upload: uploadFile,
+                onProgress: (status) => setMessage(['info', status]),
+            });
+            const summary = summarizeImageUploads(result);
+            setMessage([summary.severity, summary.message]);
+            if (result.failed.length > 0) {
+                await logClientError(`Upload issues: ${summary.message}`);
+            }
+            if (result.lastStatus) handleUserProfileUpdate(result.lastStatus);
+            if (result.ok > 0) router.refresh();
+        } catch (error: unknown) {
+            const statusMessage = error instanceof Error
+                ? error.message
+                : 'There was an error uploading your files.';
+            // eslint-disable-next-line no-console
+            console.error('Error uploading files', error);
+            setMessage(['error', statusMessage]);
+            await logClientError(`Upload failed: ${statusMessage}`);
+        } finally {
+            uploadingRef.current = false;
+            setUploading(false);
+            if (uploadFilesRef.current) uploadFilesRef.current.value = '';
+        }
+    }, [handleUserProfileUpdate, router, uploadFile]);
 
     return (
         <>
-            <Box className="flex flex-col min-w-full gap-2 mx-auto p-3 border border-gray-300 rounded">
+            <Box
+                className={`flex flex-col min-w-full gap-2 mx-auto p-3 border rounded ${
+                    dragOver ? 'border-[color:var(--gold-color)] border-2' : 'border-gray-300'
+                }`}
+                onDragEnter={(e) => {
+                    e.preventDefault();
+                    if (!uploading) setDragOver(true);
+                }}
+                onDragOver={(e) => {
+                    e.preventDefault();
+                }}
+                onDragLeave={(e) => {
+                    e.preventDefault();
+                    setDragOver(false);
+                }}
+                onDrop={(e) => {
+                    e.preventDefault();
+                    setDragOver(false);
+                    if (!uploading) {
+                        handleSelectedFiles(e.dataTransfer.files).then();
+                    }
+                }}
+            >
 
                 <Typography component="h2">
-                    Upload new images
+                    Choose photos of your work
+                </Typography>
+                <Typography variant="body2">
+                    JPG or phone photos are fine.
                 </Typography>
 
                 <Stack spacing={2}>
@@ -86,8 +140,9 @@ export function ProfileUploads({
                             variant="outlined"
                             component="span"
                             color="secondary"
+                            disabled={uploading}
                         >
-                            Click here to Upload multiple images
+                            {uploading ? 'Uploading…' : 'Click here to Upload multiple images'}
                         </Button>
                         <input
                             ref={uploadFilesRef}
@@ -96,62 +151,11 @@ export function ProfileUploads({
                             type="file"
                             multiple
                             accept="image/*"
-                            onChange={async (e) => {
+                            disabled={uploading}
+                            onChange={(e) => {
                                 e.stopPropagation();
-                                const input = e.target;
-                                if (input && input.files) {
-                                    let count = 0;
-                                    const errorCount = 0;
-                                    // setStatus('updating');
-                                    setMessage(['info', `Uploading ${input.files.length} files...`]);
-                                    let lastStatus: IProfileStatus | undefined;
-                                    try {
-                                        await Promise.all(Array.from(input.files).map(async (file) => {
-                                            let convertedFile = file;
-                                            // if (file.size > 1024 * 1024 * 5) {
-                                            setMessage(['info', `Converting ${file.name} to JPG...`]);
-                                            convertedFile = await convertImageToJPG(file);
-                                            // }
-                                            setMessage(['info', `Uploading ${file.name}...`]);
-                                            const uploadResult = await uploadFile(convertedFile);
-                                            lastStatus = uploadResult.result;
-                                            count += 1;
-                                            // } else {
-                                            //   errorCount += 1;
-                                            //   setMessage(['error', `File ${file.name} must be less than 5MB. Skipping ${file.name}`]);
-                                            // }
-                                        }));
-                                    } catch (error: unknown) {
-                                        const statusMessage = error instanceof Error
-                                            ? error.message
-                                            : 'There was an error uploading your files.';
-                                        // eslint-disable-next-line no-console
-                                        console.error('Error uploading files', error);
-                                        setMessage(['error', statusMessage]);
-                                        await logClientError(`Upload failed: ${statusMessage}`);
-                                        return;
-                                    }
-                                    // setStatus('ready');
-                                    e.target.value = '';
-                                    if (count === 0) {
-                                        setMessage(['error', 'There was an error uploading your files.']);
-                                        return;
-                                    }
-                                    if (errorCount > 0) {
-                                        setMessage(['info', 'There was an error uploading some of your files.']);
-                                    } else {
-                                        setMessage(['success', `${count} file${count === 1 ? ' has been' : 's have been'} uploaded`]);
-                                    }
-
-                                    if (lastStatus) handleUserProfileUpdate(lastStatus);
-
-                                    router.refresh();
-                                    // if (updatedUserProfile) {
-                                    //   setUserProfileClient((oldProfile) => ({
-                                    //     ...oldProfile,
-                                    //     ...updatedUserProfile
-                                    //   }));
-                                    // }
+                                if (e.target.files) {
+                                    handleSelectedFiles(e.target.files).then();
                                 }
                             }}
                         />
@@ -164,8 +168,25 @@ export function ProfileUploads({
                         Admin mode: You are editing these profile uploads on behalf of the user.
                     </Alert>
                 )}
+                {canRequestFeature && (
+                    <Alert severity="info">
+                        If you exhibited at the
+                        {' '}
+                        {lastFairYear}
+                        {' '}
+                        Art Fair, you can ask to feature a photo on the home page.
+                        Checking the box and clicking Update Image sends a request. It will not
+                        appear on the site until an organizer approves it.
+                    </Alert>
+                )}
+                {adminMode && !canRequestFeature && (
+                    <Alert severity="info">
+                        This artist cannot request a home page feature (no last-year exhibition
+                        payment or imported roster record).
+                    </Alert>
+                )}
                 {message && message[1] && (
-                    <Alert severity={message[0]}>
+                    <Alert severity={message[0]} role="status">
                         {message[1]}
                     </Alert>
                 )}
@@ -192,11 +213,11 @@ export function ProfileUploads({
                                 <ProfileUploadForm
                                     key={fileUpload.id}
                                     fileUpload={fileUpload}
-                                    // uploadHooks={formUploadList}
                                     deleteFile={deleteFile}
                                     updateFile={updateFile}
                                     adminMode={adminMode}
-                                    // onUpdate={handleUserProfileUpdate}
+                                    canRequestFeature={canRequestFeature}
+                                    lastFairYear={lastFairYear}
                                 />
                             ))}
                         </TableBody>

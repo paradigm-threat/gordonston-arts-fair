@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import {
   Alert,
   Box,
-  Button,
   Paper,
   Table,
   TableBody,
@@ -14,8 +13,9 @@ import {
   TableRow,
   Typography
 } from '@mui/material';
+import { AdminSelect } from '@components/Admin/AdminSelect';
 import type { AlertColor } from '@mui/material/Alert';
-import { transactionTypes } from '@types';
+import { TransactionType, transactionTypes } from '@types';
 import { snakeCaseToTitleCase } from '@util/format';
 import { UserTransactionModel } from '@util/models';
 import { UserTransactionSearchParams } from '@util/transActions';
@@ -47,7 +47,7 @@ export default function UserTransactionView({
   }, [args, fetchUserTransactions]);
 
   return (
-    <Box className="flex flex-col min-w-full m-auto p-6 rounded-2xl border-2 border-[#ccca]">
+    <Box className="admin-panel">
       <Typography component="h2" sx={{ pb: 0 }} gutterBottom>
         {title}
       </Typography>
@@ -58,36 +58,31 @@ export default function UserTransactionView({
         </Alert>
       )}
 
-      <div className="flex flex-row">
-        <Paper className="flex flex-row flex-wrap  gap-1 p-1 mb-1" elevation={2}>
-          <Button
-            size="x-small"
-            variant="contained"
-            color={!args.type ? 'secondary' : 'primary'}
-            onClick={() => setArgs({ ...args, type: undefined })}
-          >
-            All
-          </Button>
-          {transactionTypes.map((value) => (
-            <Button
-              key={value}
-              size="x-small"
-              variant="contained"
-              onClick={() => setArgs({ ...args, type: value })}
-              color={value === args.type ? 'secondary' : 'primary'}
-            >
-              {snakeCaseToTitleCase(value)}
-            </Button>
-          ))}
-        </Paper>
+      <div className="admin-toolbar">
+        <AdminSelect
+          id="transaction-type-filter"
+          label="Transaction type"
+          value={args.type || 'all'}
+          onChange={(value) => setArgs({
+            ...args,
+            type: value === 'all' ? undefined : value as TransactionType,
+          })}
+          options={[
+            { value: 'all', label: 'All transactions' },
+            ...transactionTypes.map((value) => ({
+              value,
+              label: snakeCaseToTitleCase(value),
+            })),
+          ]}
+        />
       </div>
 
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
-            <TableRow className="bg-blue-700 [&_th]:bold [&_th]:text-white [&_th]:px-4 [&_th]:py-2">
+            <TableRow className="admin-table-head">
               <TableCell
-                className="cursor-pointer underline hover:text-blue-200"
+                className="cursor-pointer underline"
                 align="center"
                 onClick={() => setArgs({
                   ...args,
