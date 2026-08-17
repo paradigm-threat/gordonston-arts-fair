@@ -9,7 +9,7 @@ declare module '@mui/material/Button' {
 }
 
 export const GOLD_LIGHT = '#7a5600';
-export const GOLD_DARK = '#8ec8ff';
+export const GOLD_DARK = '#c5e4ff';
 export const GOLD_CONTRAST_LIGHT = '#ffffff';
 export const GOLD_CONTRAST_DARK = '#1a1916';
 export const DARK_PAGE = '#252422';
@@ -31,7 +31,7 @@ export function createAppTheme(mode: PaletteMode) {
         contrastText: dark ? GOLD_CONTRAST_DARK : GOLD_CONTRAST_LIGHT,
       },
       secondary: {
-        main: dark ? '#c5e4ff' : '#5c4300',
+        main: dark ? '#e8f4ff' : '#5c4300',
         contrastText: dark ? GOLD_CONTRAST_DARK : GOLD_CONTRAST_LIGHT,
       },
       background: {

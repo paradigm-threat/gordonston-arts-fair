@@ -18,6 +18,7 @@ html[data-theme="light"] {
   --gold-color: #7a5600;
   --gold-contrast-text: #ffffff;
   --gold-color-bright: #eaac00;
+  --icon-color: #7a5600;
   --appearance-system: #2f6fed;
   --appearance-light: #7a5600;
   --appearance-dark: #6b4bd8;
@@ -32,13 +33,14 @@ html[data-theme="light"] {
 html[data-theme="dark"] {
   --foreground-color: #f4f0e8;
   --background-color: #252422;
-  --link-color: #8ec8ff;
-  --link-color-visited: #b7d4f5;
-  --link-color-hover: #c5e4ff;
-  --link-color-active: #c5e4ff;
-  --gold-color: #8ec8ff;
+  --link-color: #c5e4ff;
+  --link-color-visited: #d4e4f4;
+  --link-color-hover: #e8f4ff;
+  --link-color-active: #e8f4ff;
+  --gold-color: #c5e4ff;
   --gold-contrast-text: #1a1916;
-  --gold-color-bright: #8ec8ff;
+  --gold-color-bright: #c5e4ff;
+  --icon-color: #e8c56b;
   --appearance-system: #7eb6ff;
   --appearance-light: #e4d4b0;
   --appearance-dark: #c4b5fd;
@@ -293,30 +295,13 @@ html[data-theme="dark"] {
   width: 1.15em;
   height: 1.15em;
   flex-shrink: 0;
+  color: var(--icon-color);
 }
 
-.info-card-icon-date {
-  color: var(--gold-color);
-}
-
-.info-card-icon-location {
-  color: #d13b4a;
-}
-
+.info-card-icon-date,
+.info-card-icon-location,
 .info-card-icon-apply {
-  color: var(--appearance-system);
-}
-
-.on-light-surface .info-card-icon-date {
-  color: #7a5600;
-}
-
-.on-light-surface .info-card-icon-location {
-  color: #c02336;
-}
-
-.on-light-surface .info-card-icon-apply {
-  color: #2f6fed;
+  color: var(--icon-color);
 }
 
 .hero-info-card {
@@ -355,18 +340,6 @@ html[data-theme="light"] .hero-info-card {
   a:focus-visible {
     color: #0013ff;
   }
-
-  .info-card-icon-date {
-    color: #7a5600;
-  }
-
-  .info-card-icon-location {
-    color: #c02336;
-  }
-
-  .info-card-icon-apply {
-    color: #2f6fed;
-  }
 }
 
 .on-light-surface {
@@ -383,6 +356,13 @@ html[data-theme="light"] .hero-info-card {
   a:hover,
   a:focus-visible {
     color: #0013ff;
+  }
+
+  .info-card-icon,
+  .info-card-icon-date,
+  .info-card-icon-location,
+  .info-card-icon-apply {
+    color: #7a5600;
   }
 }
 
