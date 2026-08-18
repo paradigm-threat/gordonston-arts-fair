@@ -5,26 +5,26 @@ import {ApplicationStatusText} from "@components/Info/WhenRegistrationPhase";
 
 export const eventDateString = formatDate(new Date(`${process.env.NEXT_PUBLIC_EVENT_DATE}`));
 
-<div className={clsx(`info-card grid md:grid-cols-3 gap-4 p-3 w-[100vw] md:w-auto`, props.className)}>
-    <div>
-        <h2 className='info-card-heading uppercase'><FaCalendarAlt className="info-card-icon info-card-icon-date" aria-hidden /> Festival Date</h2>
+<div className={clsx(`info-card grid md:grid-cols-3 items-start gap-4 p-3 w-[100vw] md:w-auto`, props.className)}>
+    <div className="info-card-col">
+        <h2 className='info-card-heading uppercase'><FaCalendarAlt className="info-card-icon info-card-icon-date" aria-hidden /> <span>Festival Date</span></h2>
         <div>
-            {eventDateString}<br/>
-            10:00am until 4:00pm
+            {eventDateString}<br />
+            {'10:00am until 4:00pm'}
         </div>
     </div>
-    <div>
-        <h2 className='info-card-heading uppercase'><FaMapMarkerAlt className="info-card-icon info-card-icon-location" aria-hidden /> Location</h2>
+    <div className="info-card-col">
+        <h2 className='info-card-heading uppercase'><FaMapMarkerAlt className="info-card-icon info-card-icon-location" aria-hidden /> <span>Location</span></h2>
         <address>
             <a href='https://maps.app.goo.gl/bzvrR3X1hCpNhFjB6'>
-                Juliette Gordon Low Park<br/>
-                10 Edgewood Rd<br/>
-                Savannah, GA 31404
+                {'Juliette Gordon Low Park'}<br />
+                {'10 Edgewood Rd'}<br />
+                {'Savannah, GA 31404'}
             </a>
         </address>
     </div>
-    <div>
-        <h2 className='info-card-heading uppercase'><FaPalette className="info-card-icon info-card-icon-apply" aria-hidden /> Artist Application</h2>
+    <div className="info-card-col">
+        <h2 className='info-card-heading uppercase'><FaPalette className="info-card-icon info-card-icon-apply" aria-hidden /> <span>Artist Application</span></h2>
         <div>
             <ApplicationStatusText/>
         </div>
