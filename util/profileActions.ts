@@ -203,7 +203,7 @@ export async function uploadFile(userID: number, file: File) {
 
     try {
         const contentType = file.type?.startsWith('image/') ? file.type : 'image/jpeg';
-        const putResult = await put(`${imagePath}/${fileName}`, bytes, {
+        const putResult = await put(`${imagePath}/${fileName}`, Buffer.from(bytes), {
             access: 'public',
             contentType,
             allowOverwrite: true
