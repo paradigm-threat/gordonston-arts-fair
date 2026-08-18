@@ -4,8 +4,10 @@ import {
     sanitizeUploadFilename,
     isBlockedUploadType,
     describeSourceFileError,
+    isJpegBytes,
+    describeJpegBytesError,
 } from '@util/uploadValidation';
-import {processImageUploads, summarizeImageUploads} from '@util/uploadBatch';
+import {processImageUploads, summarizeImageUploads, isTransientUploadError} from '@util/uploadBatch';
 import type {IProfileStatus} from '@util/profile';
 import {ConvertProbe} from './ConvertProbe';
 
@@ -28,6 +30,9 @@ test.describe('upload filename hardening', () => {
         expect(isBlockedUploadType('image/jpeg', 'booth.jpg')).toBe(false);
         expect(describeSourceFileError(new File([], 'empty.jpg', {type: 'image/jpeg'})))
             .toMatch(/empty/i);
+        expect(isJpegBytes(Uint8Array.from([0xff, 0xd8, 0xff, 0xe0]))).toBe(true);
+        expect(describeJpegBytesError(Uint8Array.from([0x89, 0x50, 0x4e, 0x47])))
+            .toMatch(/not a JPEG/i);
     });
 });
 
@@ -66,6 +71,43 @@ test.describe('multi-upload batch', () => {
             onProgress: () => undefined,
         });
         expect(summarizeImageUploads(result).message).toBe('1 file has been uploaded');
+    });
+
+    test('retries a dropped server-action fetch then succeeds', async () => {
+        let attempts = 0;
+        const result = await processImageUploads([
+            new File([new Uint8Array([1, 2, 3])], 'booth.png', {type: 'image/png'}),
+        ], {
+            convert: async (file) => file,
+            upload: async () => {
+                attempts += 1;
+                if (attempts < 3) throw new TypeError('Load failed');
+                return {result: profileStatus, message: 'ok'};
+            },
+            onProgress: () => undefined,
+        });
+        expect(attempts).toBe(3);
+        expect(result.ok).toBe(1);
+        expect(result.failed).toHaveLength(0);
+    });
+
+    test('does not retry invalid source files', async () => {
+        let uploads = 0;
+        const result = await processImageUploads([
+            new File([new Uint8Array([1])], 'art.svg', {type: 'image/svg+xml'}),
+        ], {
+            convert: async (file) => file,
+            upload: async () => {
+                uploads += 1;
+                return {result: profileStatus, message: 'ok'};
+            },
+            onProgress: () => undefined,
+        });
+        expect(uploads).toBe(0);
+        expect(result.ok).toBe(0);
+        expect(result.failed[0].message).toMatch(/not a photo/i);
+        expect(isTransientUploadError(new TypeError('Load failed'))).toBe(true);
+        expect(isTransientUploadError(new Error('Could not read that image. Please try a JPEG or PNG.'))).toBe(false);
     });
 });
 

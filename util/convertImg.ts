@@ -1,4 +1,4 @@
-import {jpgFileName, getMaxImageWidth, describeSourceFileError} from '@util/uploadValidation';
+import {jpgFileName, getMaxImageWidth, describeSourceFileError, describeJpegBytesError} from '@util/uploadValidation';
 
 function loadImage(objectUrl: string): Promise<HTMLImageElement> {
     return new Promise((resolve, reject) => {
@@ -41,7 +41,10 @@ export async function convertImageToJPG(file: File, quality: number = 0.95): Pro
         if (!ctx) throw new Error('Could not convert this image.');
         ctx.drawImage(img, 0, 0, width, height);
         const blob = await canvasToJpegBlob(canvas, quality);
-        return new File([blob], jpgFileName(file.name), {type: 'image/jpeg'});
+        const bytes = new Uint8Array(await blob.arrayBuffer());
+        const jpegError = describeJpegBytesError(bytes);
+        if (jpegError) throw new Error(jpegError);
+        return new File([bytes], jpgFileName(file.name), {type: 'image/jpeg'});
     } finally {
         URL.revokeObjectURL(objectUrl);
     }

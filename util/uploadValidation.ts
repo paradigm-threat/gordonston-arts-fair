@@ -49,6 +49,16 @@ export function describeSourceFileError(file: File): string | null {
     return null;
 }
 
+export function isJpegBytes(bytes: Uint8Array): boolean {
+    return bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+}
+
+export function describeJpegBytesError(bytes: Uint8Array): string | null {
+    if (!bytes || bytes.length === 0) return 'The converted image was empty.';
+    if (!isJpegBytes(bytes)) return 'The converted file was not a JPEG. Please try a different photo.';
+    return null;
+}
+
 export function describeConvertedFileError(file: File): string | null {
     if (!file || file.size <= 0) return 'The converted image was empty.';
     if (file.size > MAX_UPLOAD_BYTES) return 'The converted image is still too large to upload.';

@@ -5,7 +5,7 @@
 import {put} from '@vercel/blob';
 import {ensureDatabase} from '@util/database';
 import {addUserUserLogModel} from '@util/logActions';
-import {imageDimensionsFromStream} from 'image-dimensions';
+import {imageDimensionsFromData} from 'image-dimensions';
 import {UserFileUploadModel, UserModel} from '@util/models';
 import {UserStatus} from '@types';
 import {getProfileStatus} from '@util/profile';
@@ -178,7 +178,8 @@ export async function uploadFile(userID: number, file: File) {
     if (convertedError) throw HttpError.BadRequest(convertedError);
 
     const imagePath = `uploads/${userProfile.id}`;
-    const imageDimensions = await imageDimensionsFromStream(file.stream());
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const imageDimensions = imageDimensionsFromData(bytes);
     if (!imageDimensions) {
         throw HttpError.BadRequest('Could not read that image. Please try a JPEG or PNG.');
     }
@@ -202,7 +203,7 @@ export async function uploadFile(userID: number, file: File) {
 
     try {
         const contentType = file.type?.startsWith('image/') ? file.type : 'image/jpeg';
-        const putResult = await put(`${imagePath}/${fileName}`, file, {
+        const putResult = await put(`${imagePath}/${fileName}`, bytes, {
             access: 'public',
             contentType,
             allowOverwrite: true
