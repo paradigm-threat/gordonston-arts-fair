@@ -59,12 +59,16 @@ test.describe('Signed-in artist', () => {
         await page.locator('textarea[name="description"]').fill(`Playwright e2e exhibit ${Date.now()}.`);
 
         await page.getByRole('button', {name: 'Update Profile'}).click();
-        await expect(page.getByText(/Profile updated successfully|Please upload at least one file|Please pay your registration fee/i)).toBeVisible({timeout: 20_000});
+        // After save, stepper/dialog/alert may all mention the next step; use .first() to avoid strict-mode clashes.
+        await expect(page.getByText(
+            /Profile updated successfully|Please upload at least one (file|image)|Please pay (your|the artist) registration fee|you may still pay the artist registration fee/i,
+        ).first()).toBeVisible({timeout: 20_000});
     });
 
     test('cannot open the admin artist list', async ({page}) => {
         await page.goto('/user', {waitUntil: 'domcontentloaded'});
-        await expect(page.getByText(/Unauthorized|Admin access required/i)).toBeVisible();
+        // Admin layout shows a loading shell before the unauthorized error renders.
+        await expect(page.getByText(/Unauthorized|Admin access required/i)).toBeVisible({timeout: 20_000});
         await expect(page.getByRole('heading', {name: /Manage/})).toHaveCount(0);
     });
 

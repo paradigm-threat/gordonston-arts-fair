@@ -28,7 +28,8 @@ export default (async () => {
         fullyParallel: true,
         forbidOnly: !!process.env.CI,
         retries: process.env.CI ? 2 : 1,
-        workers: process.env.CI ? 1 : 2,
+        // Clerk + Next webServer are flaky under parallel workers (ERR_ABORTED / auth races).
+        workers: 1,
         timeout: 60_000,
         reporter: process.env.CI
             ? [['list'], ['junit', {outputFile: 'test-results/junit.xml'}], ['html', {open: 'never'}]]

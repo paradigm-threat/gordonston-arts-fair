@@ -1,5 +1,6 @@
 import {formatDate} from "../../util/date";
 import {WhenRegistrationPhase} from "@components/Info/WhenRegistrationPhase";
+import {RegistrationGraceNote} from "@components/Info/RegistrationGraceNote";
 import {FeaturedArtworkSection} from "@components/Info/FeaturedArtworkSection";
 
 export const eventDate = new Date(process.env.NEXT_PUBLIC_EVENT_DATE);
@@ -45,14 +46,15 @@ Welcome to the application page. Please carefully read the following:
 <li>This event takes place on {formatDate(eventDate)}.</li>
 <WhenRegistrationPhase phase="not-yet-open">
 <li>Online applications will be accepted beginning {formatDate(registrationOpenDate)}.</li>
-<li>Applications must be submitted by {formatDate(registrationEndDate)} with a non-refundable application fee of ${registrationFee}.</li>
+<li>Applications must be submitted by {formatDate(registrationEndDate)} (11:59 PM Eastern Time) with a non-refundable application fee of ${registrationFee}.</li>
 </WhenRegistrationPhase>
 <WhenRegistrationPhase phase="open">
-<li>Online applications opened {formatDate(registrationOpenDate)} and must be submitted by {formatDate(registrationEndDate)} with a non-refundable application fee of ${registrationFee}.</li>
+<li>Online applications opened {formatDate(registrationOpenDate)} and must be submitted by {formatDate(registrationEndDate)} (11:59 PM Eastern Time) with a non-refundable application fee of ${registrationFee}.</li>
 </WhenRegistrationPhase>
 <WhenRegistrationPhase phase="closed">
-<li>The online application period closed on {formatDate(registrationEndDate)}.</li>
+<li>The online application period closed on {formatDate(registrationEndDate)} (11:59 PM Eastern Time).</li>
 </WhenRegistrationPhase>
+<RegistrationGraceNote asListItem />
 <li>Artists/artisans will be notified of their status (accepted, declined, or waiting list) by {formatDate(notifyStatusDate)}.</li>
 <li>If you are accepted, the ${boothFee} booth fee must be paid by {formatDate(registrationFeeDate)}.</li>
 <li>As our vending space is limited, we may fill up before the deadline. In this event, we will maintain a waiting list.</li>
@@ -254,16 +256,20 @@ You may create an account and save your profile now; you will be able to submit 
 
 <WhenRegistrationPhase phase="open">
 
-Applications are currently open until {formatDate(registrationEndDate)}.
+Applications are currently open until {formatDate(registrationEndDate)} (11:59 PM Eastern Time).
 Apply for an exhibitor booth online. The application fee is ${registrationFee}.00.
 If accepted, the booth fee is ${boothFee}.00 and must be paid by {formatDate(registrationFeeDate)}.
+
+<RegistrationGraceNote />
 
 </WhenRegistrationPhase>
 
 <WhenRegistrationPhase phase="closed">
 
-The application period for artists ended at midnight on {formatDate(registrationEndDate)}.
+The application period for artists ended at 11:59 PM Eastern Time on {formatDate(registrationEndDate)}.
 Please check back next year or contact [admin@gordonstonartfair.com](mailto:admin@gordonstonartfair.com) about waitlist availability.
+
+<RegistrationGraceNote />
 
 </WhenRegistrationPhase>
 

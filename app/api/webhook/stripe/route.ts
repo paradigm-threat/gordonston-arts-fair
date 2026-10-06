@@ -6,7 +6,7 @@ import {addTransaction} from '@util/transActions';
 import {fetchProfileByID, updateUserStatus} from '@util/profileActions';
 import {addUserUserLogModel} from "@util/logActions";
 import {FeeMetaData} from "@util/checkout";
-import {isRegistrationCheckoutAllowed} from '@util/date';
+import {isRegistrationCheckoutAllowedForUser} from '@util/date';
 import {appLog} from '@util/appLog';
 
 export async function POST(request: Request) {
@@ -74,7 +74,7 @@ export async function POST(request: Request) {
 
                 switch (feeType) {
                     case 'registration':
-                        if (!isRegistrationCheckoutAllowed()) {
+                        if (!isRegistrationCheckoutAllowedForUser(profileInfo)) {
                             await addUserUserLogModel(
                                 userID,
                                 'error',

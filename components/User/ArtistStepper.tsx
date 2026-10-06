@@ -4,13 +4,22 @@ import {
 } from '@mui/material';
 import Link from 'next/link';
 import React from 'react';
-import { formatDate, getRegistrationOpenDate, getRegistrationPhase } from '@util/date';
+import {
+  formatDate,
+  formatEasternEndOfDayDeadline,
+  getRegistrationOpenDate,
+  getRegistrationPaymentGraceDate,
+  getRegistrationPhase,
+  isRegistrationCheckoutAllowedForUser,
+} from '@util/date';
 
 interface ArtistStepperProps {
   profileStatus: IProfileStatus,
   showAlert?: boolean,
   /** Optional clock override for tests / previews */
   now?: Date,
+  /** Needed so grace-period checkout can identify pre-deadline accounts */
+  accountCreatedAt?: Date | string | null,
 }
 
 export function ArtistStepper({
@@ -21,11 +30,16 @@ export function ArtistStepper({
     message,
   }, showAlert,
   now,
+  accountCreatedAt,
 }: ArtistStepperProps) {
   let activeStep = 0;
   let returnMessage: ['info' | 'success', string] = ['info', message];
   let redirectURL: React.JSX.Element = <Link href="/profile/edit">Click here to return to profile editor</Link>;
   const registrationPhase = getRegistrationPhase(now);
+  const canPayRegistration = isRegistrationCheckoutAllowedForUser(
+    {status, createdAt: accountCreatedAt},
+    now,
+  );
   const registrationFee = process.env.NEXT_PUBLIC_REGISTRATION_FEE || '15';
   const pastApply = status === 'submitted'
     || status === 'approved'
@@ -46,6 +60,14 @@ export function ArtistStepper({
     if (registrationPhase === 'not-yet-open') {
       returnMessage = ['info', `Your profile is saved. Application submission opens ${formatDate(getRegistrationOpenDate())}.`];
       redirectURL = <Link href="/profile">Click here to return to your profile</Link>;
+    } else if (canPayRegistration) {
+      const graceDate = getRegistrationPaymentGraceDate();
+      if (registrationPhase === 'closed' && graceDate) {
+        returnMessage = ['info', `Applications are closed to new applicants, but you may still pay the artist registration fee through ${formatEasternEndOfDayDeadline(graceDate)}.`];
+      } else {
+        returnMessage = ['info', 'Please pay the artist registration fee to submit your profile for approval.'];
+      }
+      redirectURL = <Link href="/payment/registration">Click here to pay the Registration Fee</Link>;
     } else if (registrationPhase === 'closed') {
       returnMessage = ['info', 'The application period has closed. Your profile is saved, but new submissions are not being accepted.'];
       redirectURL = <Link href="/profile">Click here to return to your profile</Link>;

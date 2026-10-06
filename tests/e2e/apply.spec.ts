@@ -7,8 +7,15 @@ test.describe('Apply page', () => {
 
         await expect(page.getByRole('heading', {name: 'Artist Registration'})).toBeVisible();
         await expect(page.getByText(/March 6th, 2027/).first()).toBeVisible();
-        await expect(page.getByText(/October 1st, 2026/).first()).toBeVisible();
         await expect(page.getByText(/Only online applications will be accepted/)).toBeVisible();
+
+        const body = await page.locator('article').innerText();
+        const showsWindowDates = /October \d+.+, 2026/.test(body);
+        const closed = /application period has closed/i.test(body);
+        expect(showsWindowDates || closed).toBeTruthy();
+        if (showsWindowDates) {
+            await expect(page.getByText(/October \d+.+, 2026/).first()).toBeVisible();
+        }
     });
 
     test('allows early account creation but not submission before open date', async ({page}) => {

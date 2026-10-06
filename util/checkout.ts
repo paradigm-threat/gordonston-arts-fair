@@ -3,7 +3,7 @@ import process from "node:process";
 import {UserModel} from "@util/models";
 import {NextResponse} from "next/server";
 import {FeeType} from "@types";
-import {getRegistrationCheckoutBlockedMessage, isRegistrationCheckoutAllowed} from "@util/date";
+import {getRegistrationCheckoutBlockedMessage, isRegistrationCheckoutAllowedForUser} from "@util/date";
 import {fetchTransactions} from "@util/transActions";
 import {hasPaidBoothThisCycle, hasPaidRegistrationThisCycle} from "@util/payments";
 import {appLog} from "@util/appLog";
@@ -22,12 +22,15 @@ export interface FeeMetaData {
 }
 
 export async function handleCheckout(profileData: UserModel, feeType: FeeType) {
-    if (feeType === 'registration' && !isRegistrationCheckoutAllowed()) {
-        const message = getRegistrationCheckoutBlockedMessage();
+    if (feeType === 'registration' && !isRegistrationCheckoutAllowedForUser(profileData)) {
+        const message = getRegistrationCheckoutBlockedMessage(profileData)
+            || 'Artist registration is closed for this year\'s event.';
         appLog('checkout.blocked', {
             userId: profileData.id,
             feeType,
             reason: 'registration-window',
+            status: profileData.status,
+            createdAt: profileData.createdAt,
         }, 'error');
         return NextResponse.json({message}, {status: 403});
     }

@@ -6,7 +6,12 @@ import {UserModel} from "@util/models";
 import process from "node:process";
 import {Typography} from "@mui/material";
 import ApplicationsClosedInfo from '@components/Info/ApplicationsClosedInfo';
-import {getRegistrationPhase} from '@util/date';
+import {
+    formatEasternEndOfDayDeadline,
+    getRegistrationPaymentGraceDate,
+    getRegistrationPhase,
+    isRegistrationCheckoutAllowedForUser,
+} from '@util/date';
 import {hasPaidBoothThisCycle, hasPaidRegistrationThisCycle} from '@util/payments';
 
 export const metadata = {
@@ -66,12 +71,14 @@ export default async function PublicPaymentPage({
     const hasPaidRegistration = hasPaidRegistrationThisCycle(transactions, userProfile.status);
     const hasPaidBooth = hasPaidBoothThisCycle(transactions, userProfile.status);
 
-    const showRegistrationButton = !hasPaidRegistration && registrationPhase === 'open';
+    const registrationCheckoutAllowed = isRegistrationCheckoutAllowedForUser(userProfile);
+    const showRegistrationButton = !hasPaidRegistration && registrationCheckoutAllowed;
     const showBoothButton = hasPaidRegistration && !hasPaidBooth && userProfile.status === 'approved';
+    const graceDate = getRegistrationPaymentGraceDate();
 
     const artistName = getDisplayName(userProfile, email);
 
-    if (!hasPaidRegistration && registrationPhase !== 'open') {
+    if (!hasPaidRegistration && !registrationCheckoutAllowed) {
         return (
             <div className="mx-auto max-w-xl p-4">
                 <h1 className="mb-2 text-[color:var(--gold-color)] italic">Artist Payment</h1>
@@ -85,6 +92,13 @@ export default async function PublicPaymentPage({
         <div className="mx-auto max-w-3xl p-4">
             <h1 className="mb-2 text-[color:var(--gold-color)] italic">Artist Payment</h1>
             <p className="mb-6">Artist: <span className="font-semibold">{artistName}</span></p>
+
+            {registrationPhase === 'closed' && showRegistrationButton && graceDate && (
+                <p className="mb-4">
+                    Applications are closed to new applicants. This artist may still pay through{' '}
+                    {formatEasternEndOfDayDeadline(graceDate)}.
+                </p>
+            )}
 
             <div className="grid gap-6">
                 {showRegistrationButton && (

@@ -9,7 +9,12 @@ import { fetchTransactions } from '@util/transActions';
 import UserTransactionView from '@components/User/UserTransactionView';
 import ApplicationPreview from '@components/User/ApplicationPreview';
 import ApplicationsClosedInfo from '@components/Info/ApplicationsClosedInfo';
-import { getRegistrationPhase } from '@util/date';
+import {
+  formatEasternEndOfDayDeadline,
+  getRegistrationPaymentGraceDate,
+  getRegistrationPhase,
+  isRegistrationCheckoutAllowedForUser,
+} from '@util/date';
 import { hasPaidRegistrationThisCycle, hasPriorCycleRegistrationPayment } from '@util/payments';
 
 export const metadata = {
@@ -46,15 +51,27 @@ export default async function CheckoutPage() {
   }
   const USER_LABEL = process.env.NEXT_PUBLIC_USER_LABEL || 'User';
   const registrationPhase = getRegistrationPhase();
-  const registrationAvailable = registrationPhase === 'open';
+  const registrationAvailable = isRegistrationCheckoutAllowedForUser(userProfile);
+  const graceDate = getRegistrationPaymentGraceDate();
+  const showGraceNote = registrationPhase === 'closed' && registrationAvailable && graceDate;
 
   return (
     <Stack spacing={2}>
       <h1 className="items-center text-[color:var(--gold-color)] italic">Pay Artist Registration Fee</h1>
 
-      <ArtistStepper profileStatus={profileStatus} />
+      <ArtistStepper
+        profileStatus={profileStatus}
+        accountCreatedAt={userProfile.createdAt}
+      />
 
       <ApplicationPreview userProfile={userProfile} userUploads={userUploads} />
+
+      {showGraceNote && (
+        <p>
+          Applications are closed to new applicants. Because you already had an account,
+          you may still pay through {formatEasternEndOfDayDeadline(graceDate)}.
+        </p>
+      )}
 
       {!registrationAvailable ? (
         <ApplicationsClosedInfo />

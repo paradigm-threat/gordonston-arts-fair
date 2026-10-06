@@ -14,7 +14,7 @@ test.describe('Landing page', () => {
     test('shows application window dates', async ({page}) => {
         await page.goto('/', {waitUntil: 'domcontentloaded'});
 
-        await expect(page.getByRole('main').getByText(/October 1st, 2026/).first()).toBeVisible();
+        await expect(page.getByRole('main').getByText(/October 5th, 2026/).first()).toBeVisible();
         await expect(page.getByRole('main').getByText(/November 1st, 2026/).first()).toBeVisible();
     });
 

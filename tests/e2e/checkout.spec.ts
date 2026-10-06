@@ -1,6 +1,6 @@
 import {test, expect} from '@playwright/test';
 import {expectNoA11yViolations, expectNoContrastViolations} from '../helpers/a11y';
-import {isRegistrationCheckoutAllowed} from '../../util/date';
+import {getRegistrationPhase, isRegistrationCheckoutAllowed} from '../../util/date';
 
 test.describe('Checkout API', () => {
     test('public checkout rejects missing email', async ({request}) => {
@@ -24,22 +24,29 @@ test.describe('Checkout API', () => {
         expect(body.message).toMatch(/unauthorized/i);
     });
 
-    test('public registration checkout is blocked before open date', async ({request}) => {
+    test('public registration checkout is blocked outside the open window for new emails', async ({request}) => {
         test.skip(isRegistrationCheckoutAllowed(), 'Registration window is already open in this environment');
 
+        const phase = getRegistrationPhase();
+        const email = `playwright-registration-gate-${Date.now()}@example.com`;
         const response = await request.post('/api/checkout-sessions-public/registration', {
-            data: {email: 'playwright-registration-gate@example.com'},
+            data: {email},
         });
 
         expect(response.status()).toBe(403);
         const body = await response.json();
-        expect(body.message).toMatch(/not open yet|submission/i);
+        if (phase === 'not-yet-open') {
+            expect(body.message).toMatch(/not open yet|submission/i);
+        } else {
+            expect(body.message).toMatch(/closed|new applicants|already started/i);
+        }
     });
 
-    test('public payment page hides registration checkout before open date', async ({page}) => {
+    test('public payment page hides registration checkout for new emails outside the open window', async ({page}) => {
         test.skip(isRegistrationCheckoutAllowed(), 'Registration window is already open in this environment');
 
-        await page.goto('/payment?email=playwright-registration-gate@example.com', {
+        const email = `playwright-registration-gate-${Date.now()}@example.com`;
+        await page.goto(`/payment?email=${encodeURIComponent(email)}`, {
             waitUntil: 'domcontentloaded',
         });
 

@@ -20,7 +20,11 @@ export default async function ProfilePage() {
     <Stack spacing={2}>
       <h1 className="m-auto text-[color:var(--gold-color)] italic">Artist Profile</h1>
 
-      <ArtistStepper profileStatus={profileStatus} showAlert />
+      <ArtistStepper
+        profileStatus={profileStatus}
+        showAlert
+        accountCreatedAt={userProfile.createdAt}
+      />
 
       <Link href="/profile/edit">Click here to edit your profile</Link>
       <ProfileView

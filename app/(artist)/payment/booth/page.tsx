@@ -34,7 +34,10 @@ export default async function CheckoutPage() {
         <Stack spacing={2}>
             <h1 className="m-auto text-[color:var(--gold-color)] italic">Pay Artist Booth Fee</h1>
 
-            <ArtistStepper profileStatus={profileStatus}/>
+            <ArtistStepper
+                profileStatus={profileStatus}
+                accountCreatedAt={userProfile.createdAt}
+            />
 
             {alreadyPaid ? (
                 <p>You have already paid this year&apos;s booth fee.</p>

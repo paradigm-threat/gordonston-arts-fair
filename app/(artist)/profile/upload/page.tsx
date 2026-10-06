@@ -31,7 +31,10 @@ export default async function ProfileUploadsPage() {
     <Stack spacing={2}>
       <h1 className="m-auto text-[color:var(--gold-color)] italic">Upload Artist Images</h1>
 
-      <ArtistStepper profileStatus={profileStatus} />
+      <ArtistStepper
+        profileStatus={profileStatus}
+        accountCreatedAt={userProfile.createdAt}
+      />
 
       <ProfileUploads
         userUploads={userUploads.map((u) => u.toJSON())}

@@ -1,5 +1,6 @@
 import {formatDate} from "../../../util/date";
 import {WhenRegistrationPhase} from "@components/Info/WhenRegistrationPhase";
+import {RegistrationGraceNote} from "@components/Info/RegistrationGraceNote";
 import {ApplyAuthButtons} from '@components/SessionForms/ApplyAuthButtons';
 
 export const metadata = {
@@ -27,20 +28,26 @@ This event takes place on **{formatDate(eventDate)}**.
 
 <WhenRegistrationPhase phase="not-yet-open">
 
-Online applications will open on **{formatDate(registrationOpenDate)}** and close on **{formatDate(registrationEndDate)}**.
+Online applications will open on **{formatDate(registrationOpenDate)}** and close on **{formatDate(registrationEndDate)}** (11:59 PM Eastern Time).
 You may create an account and save your profile now; you will be able to submit your application when the window opens.
+
+<RegistrationGraceNote />
 
 </WhenRegistrationPhase>
 
 <WhenRegistrationPhase phase="open">
 
-Applications are open until **{formatDate(registrationEndDate)}**.
+Applications are open until **{formatDate(registrationEndDate)}** (11:59 PM Eastern Time).
+
+<RegistrationGraceNote />
 
 </WhenRegistrationPhase>
 
 <WhenRegistrationPhase phase="closed">
 
 The application period has closed. Please contact [admin@gordonstonartfair.com](mailto:admin@gordonstonartfair.com) with questions.
+
+<RegistrationGraceNote />
 
 </WhenRegistrationPhase>
 
